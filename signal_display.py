@@ -69,7 +69,7 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	# Plot the original signal
 	ax1.plot(signal)
 	ax1.set_title(f"Original Signal ({signal.size} samples)")
-	ax1.set_xlabel('Samples')
+	ax1.set_xlabel('Sample')
 	ax1.set_ylabel('Amplitude')
 	ax1.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True)
 	
@@ -91,7 +91,7 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	
 	ax2.set_yticks(range(1, len(detail_coeffs) + 1))
 	ax2.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
-	ax2.set_xlabel('Samples')
+	ax2.set_xlabel('Sample')
 	ax2.set_ylabel('Level')
 	ax2.set_title(f"Scalogram of DWT Detail Coefficients ({wavelet_method})")
 	
