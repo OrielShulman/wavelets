@@ -79,7 +79,8 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	for i, coeff in enumerate(detail_coeffs):
 		scale = len(detail_coeffs) - i
 		# TODO: the abs value of the coefficients hides the case of two peaks
-		stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
+		stretched_coeff = np.repeat(coeff, len(signal) // len(coeff))  # Stretch coefficients to signal size
+		# stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
 		scalogram[scale - 1, :len(stretched_coeff)] = stretched_coeff
 		
 	cax = ax2.imshow(scalogram[::-1],
