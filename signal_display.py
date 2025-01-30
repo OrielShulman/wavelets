@@ -51,20 +51,20 @@ def display_2_signals(signals: list[np.ndarray], titles: list[str]) -> None:
 
 def plot_scalogram_and_signal(signal: np.ndarray,
                               coeffs: np.ndarray,
-                              main_title_info: str,
+                              plot_title: str,
                               wavelet_method: str = 'haar') -> None:
 	"""
 	plots a scaleogram of a signal DWT along the signal
 	:param signal: original signal
 	:param coeffs: DWT coefficients (both details and approximation coefficients)
-	:param main_title_info: signal information to attach with the title.
+	:param plot_title: signal information to attach with the title.
 	:param wavelet_method: wavelet method used for DWT
 	"""
 	# Create a figure with 2 subplots
 	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
 	
 	# Set the main title
-	fig.suptitle(f"DWT scalogram for:\n\n{main_title_info}\n", fontweight='bold')
+	fig.suptitle(plot_title, fontweight='bold')
 	
 	# Plot the original signal
 	ax1.plot(signal)
