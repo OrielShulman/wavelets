@@ -43,3 +43,13 @@ class Signal:
 		"""
 		noise = np.random.uniform(low=low, high=high, size=signal.shape)
 		return signal + noise
+	
+	@staticmethod
+	def compute_signal_energy(signal: np.ndarray) -> float:
+		"""
+		computes the total energy of a signal.
+		:param signal: signal input
+		:return: signal energy (sum of squares of the signal)
+		"""
+		e = float(np.sum(np.square(signal)))
+		return e
