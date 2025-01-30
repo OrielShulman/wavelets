@@ -47,7 +47,7 @@ def display_2_signals(signals: list[np.ndarray], titles: list[str]) -> None:
 	
 	plt.tight_layout()
 	plt.show()
-	
+
 
 def plot_scalogram_and_signal(signal: np.ndarray,
                               coeffs: np.ndarray,
@@ -61,7 +61,7 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	:param wavelet_method: wavelet method used for DWT
 	"""
 	# Create a figure with 2 subplots
-	fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex='all', gridspec_kw={'height_ratios': [2, 5]})
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
 	
 	# Set the main title
 	fig.suptitle(f"DWT scalogram for:\n\n{main_title_info}\n", fontweight='bold')
@@ -76,29 +76,41 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	# Plot the scalogram
 	detail_coeffs = coeffs[1:]  # only the detail coefficients
 	scalogram = np.zeros((len(detail_coeffs), len(signal)))
+	abs_scalogram = np.zeros((len(detail_coeffs), len(signal)))
 	for i, coeff in enumerate(detail_coeffs):
 		scale = len(detail_coeffs) - i
-		# TODO: the abs value of the coefficients hides the case of two peaks
 		stretched_coeff = np.repeat(coeff, len(signal) // len(coeff))  # Stretch coefficients to signal size
-		# stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
+		abs_stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
 		scalogram[scale - 1, :len(stretched_coeff)] = stretched_coeff
-		
+		abs_scalogram[scale - 1, :len(abs_stretched_coeff)] = abs_stretched_coeff
+	
 	cax = ax2.imshow(scalogram[::-1],
 	                 extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
 	                 aspect='auto',
 	                 cmap='coolwarm',
 	                 vmin=np.min(scalogram),
 	                 vmax=np.max(scalogram))
-	
+	abs_cax = ax3.imshow(abs_scalogram[::-1],
+	                     extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
+	                     aspect='auto',
+	                     cmap='Spectral',
+	                     vmin=np.min(abs_scalogram),
+	                     vmax=np.max(abs_scalogram))
+	# set scalogram ticks:
 	ax2.set_yticks(range(1, len(detail_coeffs) + 1))
 	ax2.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
 	ax2.set_xlabel('Sample')
 	ax2.set_ylabel('Level')
 	ax2.set_title(f"Scalogram of DWT Detail Coefficients ({wavelet_method})")
-	
-	# Add colorbar at the bottom
 	fig.colorbar(cax, ax=ax2, orientation='horizontal', label='Coefficient Value')
+	# set abs_scalogram ticks:
+	ax3.set_yticks(range(1, len(detail_coeffs) + 1))
+	ax3.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
+	ax3.set_xlabel('Sample')
+	ax3.set_ylabel('Level')
+	ax3.set_title(f"Absolute value Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	fig.colorbar(abs_cax, ax=ax3, orientation='horizontal', label='Coefficient Value')
+	# Add colorbar at the scalogram bottom
 	
 	plt.tight_layout()
 	plt.show()
-	
