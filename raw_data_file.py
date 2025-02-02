@@ -32,4 +32,15 @@ class RawDataFile:
 		data_to_plot = self.df.iloc[seg_start:seg_end]
 		
 		signal_display.plod_pandas_df(df=data_to_plot, plot_title=f"data file: {self.filename}")
+	
+	def split_pd_current_columns(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+		"""
+		split 10 columns to pd and current columns
+		:return:
+		"""
+		# Select columns that contain 'pd' and 'current':
+		pd_columns = [col for col in self.df.columns if 'pd' in col]
+		current_columns = [col for col in self.df.columns if 'current' in col]
 		
+		# Create two new DataFrames with only the selected columns
+		return self.df[pd_columns], self.df[current_columns]
