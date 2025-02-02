@@ -35,17 +35,30 @@ class SignalWaveletAnalysis:
 	
 	def compute_dwt(self, wavelet: str = 'haar') -> tuple[np.ndarray, np.ndarray]:
 		"""
-		computes multy level decomposition Discrete Wavelet (DWT) Transform to the signal.
+		computes Discrete Wavelet Transform (DWT) and Inverse Discrete Wavelet Transform (IDWT) to the signal.
 		:param wavelet: wavelet method
-		:return: the deconstructed wavelet coefficients and a reconstructed signal.
+		:return: the deconstructed wavelet DWT coefficients and a reconstructed signal.
 		"""
-		# apply decomposition to wavelet coefficients:
+		# Perform DWT decomposition:
 		coefficients = pywt.wavedec(data=self.signal, wavelet=wavelet)
 		
-		# reconstruct the signal:
+		# Perform IDWT reconstruction:
 		reconstructed_signal = pywt.waverec(coeffs=coefficients, wavelet=wavelet)
+		
+		# signal DWT coefficients, reconstructed signal
+		return coefficients, reconstructed_signal
+	
+	def compute_swt(self, wavelet: str = 'haar') -> tuple[list, np.ndarray]:
+		"""
+		computes Stationary Wavelet Transform (SWT) and Inverse Stationary Wavelet Transform (ISWT) to the signal.
+		:param wavelet: wavelet method
+		:return: the deconstructed wavelet SWT coefficients and a reconstructed signal.
+		"""
+		# Perform SWT decomposition:
+		coefficients = pywt.swt(data=self.signal, wavelet=wavelet)
+		
+		# Perform ISWT reconstruction:
+		reconstructed_signal = pywt.iswt(coeffs=coefficients, wavelet=wavelet)
 		
 		# signal SWT coefficients, reconstructed signal
 		return coefficients, reconstructed_signal
-	
-	
