@@ -32,4 +32,20 @@ class SignalWaveletAnalysis:
 		
 		# Approximation coefficient, Details coefficients, reconstructed signal
 		return cA, cD, y
+	
+	def compute_dwt(self, wavelet: str = 'haar') -> tuple[np.ndarray, np.ndarray]:
+		"""
+		computes multy level decomposition Discrete Wavelet (DWT) Transform to the signal.
+		:param wavelet: wavelet method
+		:return: the deconstructed wavelet coefficients and a reconstructed signal.
+		"""
+		# apply decomposition to wavelet coefficients:
+		coefficients = pywt.wavedec(data=self.signal, wavelet=wavelet)
 		
+		# reconstruct the signal:
+		reconstructed_signal = pywt.waverec(coeffs=coefficients, wavelet=wavelet)
+		
+		# signal SWT coefficients, reconstructed signal
+		return coefficients, reconstructed_signal
+	
+	
