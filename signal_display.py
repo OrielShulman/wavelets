@@ -134,7 +134,7 @@ def plot_swt_scalogram(signal: np.ndarray,
 	"""
 	# Create a figure with subplots
 	fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(10, 16), sharex='all',
-	                                         gridspec_kw={'height_ratios': [3, 5, 5, 5]})
+	                                         gridspec_kw={'height_ratios': [2, 5, 5, 5]})
 	
 	# Set the main title
 	fig.suptitle(f"SWT scalogram for:\n\n{signal_info}\n", fontweight='bold')
