@@ -24,10 +24,12 @@ class SignalWaveletAnalysis:
 		- details coefficients
 		- reconstructed signal
 		"""
-		# compute the wavelets coefficients: approximation and details
+		# compute the wavelets approximation and details coefficients:
 		cA, cD = pywt.dwt(data=self.signal, wavelet=wavelet)
+		
 		# reconstruct the signal:
 		y = pywt.idwt(cA=cA, cD=cD, wavelet='haar')
 		
+		# Approximation coefficient, Details coefficients, reconstructed signal
 		return cA, cD, y
 		
