@@ -49,16 +49,87 @@ def display_2_signals(signals: list[np.ndarray], titles: list[str]) -> None:
 	plt.show()
 
 
-def plot_scalogram_and_signal(signal: np.ndarray,
-                              coeffs: np.ndarray,
-                              plot_title: str,
-                              wavelet_method: str = 'haar') -> None:
+def plot_dwt_scalogram(signal: np.ndarray,
+                       coeffs: np.ndarray,
+                       signal_info: str,
+                       wavelet_method: str = 'haar') -> None:
 	"""
 	plots a scaleogram of a signal DWT along the signal
 	:param signal: original signal
 	:param coeffs: DWT coefficients (both details and approximation coefficients)
-	:param plot_title: signal information to attach with the title.
+	:param signal_info: signal information to attach with the title.
 	:param wavelet_method: wavelet method used for DWT
+	"""
+	# Create a figure with 2 subplots
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
+	
+	# Plot the original signal
+	ax1.plot(signal)
+	ax1.set_title(f"Original Signal ({signal.size} samples)")
+	ax1.set_xlabel('Sample')
+	ax1.set_ylabel('Amplitude')
+	
+	ax1.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True)
+	
+	# Extract only the details coefficients:
+	detail_coeffs = coeffs[1:]
+	
+	# Plot the scalogram:
+	scalogram = np.zeros((len(detail_coeffs), len(signal)))
+	for i, coeff in enumerate(detail_coeffs):
+		scale = len(detail_coeffs) - i
+		stretched_coeff = np.repeat(coeff, len(signal) // len(coeff))  # Stretch coefficients to signal size
+		scalogram[scale - 1, :len(stretched_coeff)] = stretched_coeff
+	cax = ax2.imshow(scalogram[::-1],
+	                 extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
+	                 aspect='auto',
+	                 cmap='coolwarm',
+	                 vmin=np.min(scalogram),
+	                 vmax=np.max(scalogram))
+	# set scalogram ticks:
+	ax2.set_yticks(range(1, len(detail_coeffs) + 1))
+	ax2.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
+	ax2.set_xlabel('Sample')
+	ax2.set_ylabel('Level')
+	ax2.set_title(f"Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	fig.colorbar(cax, ax=ax2, orientation='horizontal', label='Coefficient Value')
+	
+	# Plot the absolute value scalogram:
+	abs_scalogram = np.zeros((len(detail_coeffs), len(signal)))
+	for i, coeff in enumerate(detail_coeffs):
+		scale = len(detail_coeffs) - i
+		abs_stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
+		abs_scalogram[scale - 1, :len(abs_stretched_coeff)] = abs_stretched_coeff
+	abs_cax = ax3.imshow(abs_scalogram[::-1],
+	                     extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
+	                     aspect='auto',
+	                     cmap='Spectral',
+	                     vmin=np.min(abs_scalogram),
+	                     vmax=np.max(abs_scalogram))
+	# set abs_scalogram ticks:
+	ax3.set_yticks(range(1, len(detail_coeffs) + 1))
+	ax3.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
+	ax3.set_xlabel('Sample')
+	ax3.set_ylabel('Level')
+	ax3.set_title(f"Absolute value Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	fig.colorbar(abs_cax, ax=ax3, orientation='horizontal', label='Coefficient Value')
+	
+	# Plot:
+	fig.suptitle(f"DWT scalogram for:\n\n{signal_info}\n", fontweight='bold')
+	plt.tight_layout()
+	plt.show()
+
+
+def plot_swt_scalogram(signal: np.ndarray,
+                       coeffs: np.ndarray,
+                       plot_title: str,
+                       wavelet_method: str = 'haar') -> None:
+	"""
+	plots a scaleogram of a signal SWT with the signal
+	:param signal: original signal
+	:param coeffs: SWT coefficients (both details and approximation coefficients)
+	:param plot_title: signal information to attach with the title.
+	:param wavelet_method: wavelet method used for SWT
 	"""
 	# Create a figure with 2 subplots
 	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
@@ -73,42 +144,38 @@ def plot_scalogram_and_signal(signal: np.ndarray,
 	ax1.set_ylabel('Amplitude')
 	ax1.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True)
 	
-	# Plot the scalogram
-	detail_coeffs = coeffs[1:]  # only the detail coefficients
-	scalogram = np.zeros((len(detail_coeffs), len(signal)))
-	abs_scalogram = np.zeros((len(detail_coeffs), len(signal)))
-	for i, coeff in enumerate(detail_coeffs):
-		scale = len(detail_coeffs) - i
-		stretched_coeff = np.repeat(coeff, len(signal) // len(coeff))  # Stretch coefficients to signal size
-		abs_stretched_coeff = np.repeat(np.abs(coeff), len(signal) // len(coeff))  # Stretch coefficients to signal size
-		scalogram[scale - 1, :len(stretched_coeff)] = stretched_coeff
-		abs_scalogram[scale - 1, :len(abs_stretched_coeff)] = abs_stretched_coeff
-	
-	cax = ax2.imshow(scalogram[::-1],
-	                 extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
+	# Plot the scalogram:
+	# Combine all detail coefficients for visualization
+	combined_coeffs = np.vstack([c[1] for c in coeffs])
+	cax = ax2.imshow(combined_coeffs,
+	                 extent=[0, len(signal), 0.5, len(coeffs) + 0.5],
 	                 aspect='auto',
 	                 cmap='coolwarm',
-	                 vmin=np.min(scalogram),
-	                 vmax=np.max(scalogram))
-	abs_cax = ax3.imshow(abs_scalogram[::-1],
-	                     extent=[0, len(signal), 0.5, len(detail_coeffs) + 0.5],
-	                     aspect='auto',
-	                     cmap='Spectral',
-	                     vmin=np.min(abs_scalogram),
-	                     vmax=np.max(abs_scalogram))
+	                 vmin=np.min(combined_coeffs),
+	                 vmax=np.max(combined_coeffs))
 	# set scalogram ticks:
-	ax2.set_yticks(range(1, len(detail_coeffs) + 1))
-	ax2.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
+	ax2.set_yticks(range(1, len(combined_coeffs) + 1))
+	ax2.set_yticklabels([f'{i}' for i in range(1, len(combined_coeffs) + 1)])
 	ax2.set_xlabel('Sample')
 	ax2.set_ylabel('Level')
-	ax2.set_title(f"Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	ax2.set_title(f"Scalogram of SWT Detail Coefficients ({wavelet_method})")
 	fig.colorbar(cax, ax=ax2, orientation='horizontal', label='Coefficient Value')
+	
+	# Plot the abs value scalogram:
+	# Combine all detail coefficients for visualization
+	abs_combined_coeffs = np.vstack([np.abs(c[1]) for c in coeffs])
+	abs_cax = ax3.imshow(abs_combined_coeffs,
+	                     extent=[0, len(signal), 0.5, len(coeffs) + 0.5],
+	                     aspect='auto',
+	                     cmap='Spectral',
+	                     vmin=np.min(abs_combined_coeffs),
+	                     vmax=np.max(abs_combined_coeffs))
 	# set abs_scalogram ticks:
-	ax3.set_yticks(range(1, len(detail_coeffs) + 1))
-	ax3.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
+	ax3.set_yticks(range(1, len(abs_combined_coeffs) + 1))
+	ax3.set_yticklabels([f'{i}' for i in range(1, len(abs_combined_coeffs) + 1)])
 	ax3.set_xlabel('Sample')
 	ax3.set_ylabel('Level')
-	ax3.set_title(f"Absolute value Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	ax3.set_title(f"Absolute value Scalogram of SWT Detail Coefficients ({wavelet_method})")
 	fig.colorbar(abs_cax, ax=ax3, orientation='horizontal', label='Coefficient Value')
 	# Add colorbar at the scalogram bottom
 	
