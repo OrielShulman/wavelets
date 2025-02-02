@@ -62,3 +62,15 @@ class SignalWaveletAnalysis:
 		
 		# signal SWT coefficients, reconstructed signal
 		return coefficients, reconstructed_signal
+	
+	@ staticmethod
+	def compute_dwt_coeffs_energy(coeffs: np.ndarray) -> float:
+		"""
+		computes the energy of a DWT wavelet coefficients
+		:param coeffs: DWT coefficients.
+		:return: the energy of the signal coefficients.
+		"""
+		# flatten the coefficients and compute the total energy
+		coefficients_energy = Signal.compute_signal_energy(signal=np.concatenate(coeffs))
+		return coefficients_energy
+	
