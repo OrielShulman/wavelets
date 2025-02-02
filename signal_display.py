@@ -121,21 +121,21 @@ def plot_dwt_scalogram(signal: np.ndarray,
 
 
 def plot_swt_scalogram(signal: np.ndarray,
-                       coeffs: np.ndarray,
-                       plot_title: str,
+                       coeffs: list,
+                       signal_info: str,
                        wavelet_method: str = 'haar') -> None:
 	"""
 	plots a scaleogram of a signal SWT with the signal
 	:param signal: original signal
 	:param coeffs: SWT coefficients (both details and approximation coefficients)
-	:param plot_title: signal information to attach with the title.
+	:param signal_info: signal information to attach with the title.
 	:param wavelet_method: wavelet method used for SWT
 	"""
 	# Create a figure with 2 subplots
 	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
 	
 	# Set the main title
-	fig.suptitle(plot_title, fontweight='bold')
+	fig.suptitle(f"SWT scalogram for:\n\n{signal_info}\n", fontweight='bold')
 	
 	# Plot the original signal
 	ax1.plot(signal)
