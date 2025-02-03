@@ -64,7 +64,7 @@ class ConvolutionPulseDetection:
 		"""
 		# TODO: find_peaks can also take distance
 		# find local maxima:
-		peaks, _ = find_peaks(self.convolution_result)
+		peaks, _ = find_peaks(self.convolution_result, distance=self.pulse_width)
 		return peaks
 	
 	def pulses_from_peaks(self) -> pd.DataFrame:
@@ -153,9 +153,13 @@ class ConvolutionPulseDetection:
 
 
 if __name__ == "__main__":
+	from raw_data_file import RawDataFile
 	from signal import Signal
+	import os
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
+	DATA_FILE_NAME = 'raw_112'
+	SIGNAL_PULSE_WIDTH = 49
 	
 	# Generate Pulse signal:
 	pulse_signal_params = {'n_samples': np.power(2, 7),
@@ -167,14 +171,18 @@ if __name__ == "__main__":
 	                                    pulse_start=pulse_signal_params['pulse_start'],
 	                                    pulse_duration=pulse_signal_params['pulse_width'],
 	                                    amplitude=pulse_signal_params['pulse_amplitude'])
+	
 	# Apply detection on the base signal:
-	c_detection = ConvolutionPulseDetection(signal=base_pulse_signal, pulse_width=pulse_signal_params['pulse_width'])
+	# c_detection = ConvolutionPulseDetection(signal=base_pulse_signal, pulse_width=pulse_signal_params['pulse_width'])
 	
 	# Read a data file:
+	file_path = os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv")
+	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
+	main_current_signal = data_file.df['main_current'][:128].values
 	
 	# Apply detection:
-	
+	ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
 	exit(0)
 	
