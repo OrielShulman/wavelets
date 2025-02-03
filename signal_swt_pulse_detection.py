@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pywt
 
+# TODO: after finding local extrema, filter the coefficients by their value (strongest coefficients for detection)
+
 
 class SignalSWTPulseDetection:
 	"""
@@ -45,8 +47,6 @@ class SignalSWTPulseDetection:
 			else:
 				self.pulse_end_idx = np.append(self.pulse_end_idx, ext_index)
 		
-		# TODO: find the strongest coefficients
-		# TODO:
 	def display_pulse_detection(self) -> None:
 		"""
 		display the detection result:
