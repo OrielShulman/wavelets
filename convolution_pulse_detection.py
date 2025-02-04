@@ -53,7 +53,6 @@ class ConvolutionPulseDetection:
 		detect local maxima in the convolution result, the convolution result should be as a line of triangles
 		:return: the detected peaks
 		"""
-		# TODO: find_peaks can also take distance
 		# Find local maxima:
 		peaks, _ = find_peaks(self.convolution_result, distance=self.pulse_width)
 		# Make sure that the peaks indexes are sorted:
