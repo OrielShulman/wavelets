@@ -54,8 +54,10 @@ class ConvolutionPulseDetection:
 		:return: the detected peaks
 		"""
 		# TODO: find_peaks can also take distance
-		# find local maxima:
+		# Find local maxima:
 		peaks, _ = find_peaks(self.convolution_result, distance=self.pulse_width)
+		# Make sure that the peaks indexes are sorted:
+		peaks.sort()
 		return peaks
 	
 	def pulses_edge_from_peaks(self) -> pd.DataFrame:
@@ -72,7 +74,6 @@ class ConvolutionPulseDetection:
 			detected_pulses = pd.concat(
 				[detected_pulses, pd.DataFrame({'pulse_start': [pulse_start], 'pulse_end': [pulse_end]})],
 				ignore_index=True)
-		
 		return detected_pulses
 	
 	def synthesize_pulse_signal(self) -> np.ndarray:
@@ -167,7 +168,10 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	main_current_signal = data_file.df['main_current'][:128].values
+	main_current_signal = data_file.df['main_current'][:300].values
+	# main_current_signal = data_file.df['main_current'][:250].values
+	# main_current_signal = data_file.df['main_current'][60:300].values
+	# main_current_signal = data_file.df['main_current'][60:250].values
 	
 	# Apply detection:
 	detection_module = ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
