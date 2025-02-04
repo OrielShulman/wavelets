@@ -28,16 +28,7 @@ class ConvolutionPulseDetection:
 		self.convolution_peaks: np.ndarray = self.detect_peaks_in_convolution_result()
 		
 		# Generate a dataframe for the results:
-		self.detected_pulses: pd.DataFrame = self.pulses_from_peaks()
-		
-		# Generate a reconstructed signal based on the results:
-		self.reconstructed_signal: np.ndarray = self.reconstruct_signal()
-		
-		# Check detected pulses margins:
-		self.pulses_with_margins: pd.DataFrame = self.check_pulses_margins()
-		
-		# Display results:
-		self.display_detection_process()
+		self.detected_pulses_edge: pd.DataFrame = self.pulses_edge_from_peaks()
 		
 	def generate_rect_pulse(self) -> np.ndarray:
 		"""
@@ -67,7 +58,7 @@ class ConvolutionPulseDetection:
 		peaks, _ = find_peaks(self.convolution_result, distance=self.pulse_width)
 		return peaks
 	
-	def pulses_from_peaks(self) -> pd.DataFrame:
+	def pulses_edge_from_peaks(self) -> pd.DataFrame:
 		"""
 		generate a sequence of pulses out of the detected peaks.
 		:return: a dataframe for pulse start and the pulse end.
@@ -84,13 +75,13 @@ class ConvolutionPulseDetection:
 		
 		return detected_pulses
 	
-	def reconstruct_signal(self) -> np.ndarray:
+	def synthesize_pulse_signal(self) -> np.ndarray:
 		"""
 		reconstruct a signal based on the detected pulsed
 		:return: the reconstructed signal
 		"""
 		gen_signal = np.ones_like(self.signal) * np.min(self.signal)
-		for _, row in self.detected_pulses.iterrows():
+		for _, row in self.detected_pulses_edge.iterrows():
 			gen_signal[int(row['pulse_start']):int(row['pulse_end'])] = np.max(self.signal)
 		return gen_signal
 	
@@ -101,9 +92,9 @@ class ConvolutionPulseDetection:
 		"""
 		margin_df = pd.DataFrame(columns=['pulse_start', 'pulse_end', 'overlapping_pulses'])
 		
-		for i, row in self.detected_pulses.iterrows():
+		for i, row in self.detected_pulses_edge.iterrows():
 			overlapping_pulses = []
-			for j, other_row in self.detected_pulses.iterrows():
+			for j, other_row in self.detected_pulses_edge.iterrows():
 				if i != j:
 					if not (row['pulse_end'] < other_row['pulse_start'] or row['pulse_start'] > other_row['pulse_end']):
 						overlapping_pulses.append(j)
@@ -120,14 +111,14 @@ class ConvolutionPulseDetection:
 		plot the detection proccess and results
 		:return:
 		"""
-		fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(12, 10))
+		fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(12, 10))
 		plt.suptitle(f"convolution pulse detection [pulse width = {self.pulse_width}]", fontweight='bold')
 		
 		# Subplot 1: Input Signal
 		axes[0].plot(self.signal)
 		axes[0].set_title(f'Input signal ({len(self.signal)} samples)')
 		
-		# Subplot 3: Convolution Result with Detected Peaks
+		# Subplot 2: Convolution Result with Detected Peaks
 		axes[1].plot(self.convolution_result)
 		axes[1].plot(self.convolution_peaks,
 		             self.convolution_result[self.convolution_peaks],
@@ -136,17 +127,13 @@ class ConvolutionPulseDetection:
 		axes[1].set_title(f'Convolution result (rect kernel length: {len(self.rect_kernel)}) with detected peaks')
 		axes[1].legend()
 		
-		# Subplot 4: Input Signal with Detected Peaks
+		# Subplot 3: Input Signal with Detected Peaks
 		axes[2].plot(self.signal)
-		for i, row in self.detected_pulses.iterrows():
+		for i, row in self.detected_pulses_edge.iterrows():
 			axes[2].axvline(x=row['pulse_start'], color='g', linestyle='--', label='pulse start' if i == 0 else "")
 			axes[2].axvline(x=row['pulse_end'], color='r', linestyle='--', label='pulse start' if i == 0 else "")
 		axes[2].set_title('Input signal with detected peaks')
 		axes[2].legend()
-		
-		# Subplot 5: Reconstructed Pulse Signal
-		axes[3].plot(self.reconstructed_signal)
-		axes[3].set_title(f'Reconstructed Pulse Signal (Pulse Width: {self.pulse_width})')
 		
 		plt.tight_layout()
 		plt.show()
@@ -173,7 +160,7 @@ if __name__ == "__main__":
 	                                    amplitude=pulse_signal_params['pulse_amplitude'])
 	
 	# Apply detection on the base signal:
-	# c_detection = ConvolutionPulseDetection(signal=base_pulse_signal, pulse_width=pulse_signal_params['pulse_width'])
+	# detection_module = ConvolutionPulseDetection(signal=base_pulse_signal, pulse_width=pulse_signal_params['pulse_width'])
 	
 	# Read a data file:
 	file_path = os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv")
@@ -183,6 +170,9 @@ if __name__ == "__main__":
 	main_current_signal = data_file.df['main_current'][:128].values
 	
 	# Apply detection:
-	ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
+	detection_module = ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
+	synthesized_signal = detection_module.synthesize_pulse_signal()
+	pulses_with_margins = detection_module.check_pulses_margins()
+	detection_module.display_detection_process()
 	exit(0)
 	
