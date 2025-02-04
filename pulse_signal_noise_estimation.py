@@ -24,6 +24,9 @@ class PulseSignalNoiseEstimation:
 		# Extract the noise out of the signal:
 		self.pulse_noise_indexes: pd.DataFrame = self.extract_pulse_noise()
 		
+		# Trim noise indexes above the 90th percentile and pulse below 10th percentile:
+		self.trim_noise_pulse_out_layers()
+		
 	def extract_pulse_noise(self) -> pd.DataFrame:
 		"""
 		extracts the pulse and the noise indexes in the input signal
@@ -49,6 +52,23 @@ class PulseSignalNoiseEstimation:
 		# Create a data frame for the indexes:
 		return pd.DataFrame({'pulse_idx': pd.Series(pulse_idx), 'noise_idx': pd.Series(noise_idx)})
 	
+	def trim_noise_pulse_out_layers(self, p_noise: int = 90, p_pulse: int = 10) -> None:
+		"""
+		trim all the noise values that are above the (p_noise)th percentile,
+		also for pulse values below the (p_pulse)th percentile.
+		:param p_noise: noise value percentile to trim above
+		:param p_pulse: pulse value percentile to trim below
+		"""
+		# Calculate the 90th percentile for noise samples:
+		percentile_noise = np.percentile(self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)], p_noise)
+		# Trim the points in noise_idx where the signal value is above the 90th percentile
+		self.pulse_noise_indexes.loc[self.pulse_noise_indexes['noise_idx'].apply(lambda x: pd.notna(x) and self.signal[int(x)] > percentile_noise), 'noise_idx'] = np.nan
+		
+		# Calculate the 10th percentile for pulse samples:
+		percentile_pulse = np.percentile(self.signal[self.pulse_noise_indexes['pulse_idx'].dropna().astype(int)], p_pulse)
+		# Trim the points in pulse_idx where the signal value is below the 10th percentile
+		self.pulse_noise_indexes.loc[self.pulse_noise_indexes['pulse_idx'].apply(lambda x: pd.notna(x) and self.signal[int(x)] < percentile_pulse), 'pulse_idx'] = np.nan
+	
 	def compute_noise_mean(self) -> float:
 		"""
 		compute the mean value of the signal noise, the signal values that correspond to the noise indexes.
@@ -65,12 +85,33 @@ class PulseSignalNoiseEstimation:
 		pulse_mean = self.signal[self.pulse_noise_indexes['pulse_idx'].dropna().astype(int)].mean()
 		return pulse_mean
 	
+	def compute_noise_std(self) -> float:
+		"""
+		compute the standard deviation of the signal noise, the signal values that correspond to the noise indexes.
+		:return: signal noise mean
+		"""
+		noise_std = self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)].std()
+		return noise_std
+	
+	def compute_signal_snr(self) -> float:
+		"""
+		computes the signal SNR in dB
+		:return: SNR in dB
+		"""
+		signal_pulse_mean = self.compute_pulse_mean()
+		noise_std = self.compute_noise_std()
+		return 20 * np.log10(signal_pulse_mean / noise_std)
+	
 	def display_noise_mean_estimation_process(self) -> None:
 		"""
 		display the mean values estimation process
 		"""
 		plt.figure(figsize=(12, 6))
-		plt.suptitle(f"Pulse signal with {len(self.signal)} Samples", fontweight='bold')
+		num_pulse_samples = len(self.pulse_noise_indexes['pulse_idx'].dropna())
+		num_noise_samples = len(self.pulse_noise_indexes['noise_idx'].dropna())
+		plt.suptitle(f"Pulse signal with {len(self.signal)} Samples "
+		             f"({num_pulse_samples} pulse samples) "
+		             f"({num_noise_samples} noise samples)", fontweight='bold')
 
 		# Plot the signal
 		plt.plot(self.signal, label='signal')
@@ -86,10 +127,9 @@ class PulseSignalNoiseEstimation:
 		         color='red', label='noise', marker='.', linestyle='None')
 		
 		# Add title with the required information
-		num_pulse_samples = len(self.pulse_noise_indexes['pulse_idx'].dropna())
-		num_noise_samples = len(self.pulse_noise_indexes['noise_idx'].dropna())
-		plt.title(f"pulse mean: {self.compute_pulse_mean():.2f} (for {num_pulse_samples} samples), "
-		          f"noise mean: {self.compute_noise_mean():.2f} (for {num_noise_samples} samples)")
+		plt.title(f"pulse mean: {self.compute_pulse_mean():.2f}, "
+		          f"noise mean: {self.compute_noise_mean():.2f}, "
+		          f"signal SNR: {self.compute_signal_snr():.2f} dB")
 		
 		plt.tight_layout()
 		plt.legend()
@@ -110,9 +150,9 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	# main_current_signal = data_file.df['main_current'][:4084].values
-	main_current_signal = data_file.df['main_current'][:1024].values
-	# main_current_signal = data_file.df['main_current'][:250].values
+	main_current_signal = data_file.df['main_current'][:4084].values
+	# main_current_signal = data_file.df['main_current'][:1024].values
+	# main_current_signal = data_file.df['main_current'][:512].values
 	# main_current_signal = data_file.df['main_current'][60:300].values
 	# main_current_signal = data_file.df['main_current'][60:250].values
 	
