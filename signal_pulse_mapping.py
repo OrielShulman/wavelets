@@ -7,6 +7,7 @@ import numpy as np
 
 # TODO: subtract the noise mean from the signal
 # TODO: indicate signal SNR vs Coherent Migration SNR
+# TODO: note: centered mapping is less sensitive to PRI accuracy
 
 
 class SignalPulseMapping:
@@ -55,8 +56,13 @@ class SignalPulseMapping:
 		interval_start -= self.pri // 2
 		
 		# slice the signal into pulses:
-		pulses = [self.signal[interval_start + i * self.pri:
-		                      interval_start + (i + 1) * self.pri] for i in range(len(self.pulse_peaks) - 2)]
+		pulses = []
+		for i in range(len(self.pulse_peaks) - 2):
+			start_index = interval_start + i * self.pri
+			end_index = interval_start + (i + 1) * self.pri
+			if start_index >= 0 and end_index <= len(self.signal):
+				pulse = self.signal[start_index:end_index]
+				pulses.append(pulse)
 		
 		# Create a pulse map
 		pulse_map = pd.DataFrame(columns=['pulse'])
@@ -113,16 +119,23 @@ class SignalPulseMapping:
 		             fontweight='bold')
 		
 		# Subplot 1: Integrated pulse signal
+		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal, pulse_width=self.pulse_width)
+		# integrated_snr_mod.display_noise_mean_estimation_process()
+		integrated_snr = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal, pulse_width=self.pulse_width).compute_signal_snr()
 		axes[0].plot(self.integrated_pulse_signal)
-		axes[0].set_title(f'Integrated pulse signal ({len(self.integrated_pulse_signal)} samples)')
+		axes[0].set_title(f'Integrated pulse signal, SNR: {integrated_snr:.2f}')
 		
 		# Subplot 2: Integrated centered pulse signal
+		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal, pulse_width=self.pulse_width)
+		# integrated_snr_mod.display_noise_mean_estimation_process()
+		integrated_centered_snr = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal, pulse_width=self.pulse_width).compute_signal_snr()
 		axes[1].plot(self.integrated_centered_pulse_signal)
-		axes[1].set_title(f'Integrated centered pulse signal ({len(self.integrated_centered_pulse_signal)} samples)')
+		axes[1].set_title(f'Integrated centered pulse signal, SNR: {integrated_centered_snr:.2f}')
 		
 		plt.tight_layout()
 		plt.show()
-	
+
+
 if __name__ == "__main__":
 	from raw_data_file import RawDataFile
 	from signal import Signal
@@ -138,8 +151,9 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	# main_current_signal = data_file.df['main_current'][:4084].values
-	main_current_signal = data_file.df['main_current'][:1024].values
+	# main_current_signal = data_file.df['main_current'].values
+	main_current_signal = data_file.df['main_current'][:4096].values
+	# main_current_signal = data_file.df['main_current'][:1024].values
 	# main_current_signal = data_file.df['main_current'][:512].values
 	# main_current_signal = data_file.df['main_current'][60:300].values
 	# main_current_signal = data_file.df['main_current'][60:250].values
