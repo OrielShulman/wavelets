@@ -5,10 +5,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# TODO: subtract the noise mean from the signal
-# TODO: indicate signal SNR vs Coherent Migration SNR
-# TODO: note: centered mapping is less sensitive to PRI accuracy
-
 
 class SignalPulseMapping:
 	"""
@@ -22,6 +18,9 @@ class SignalPulseMapping:
 		:param pulse_width: pulse width [in samples]
 		:param pri: Pulse Repetition Interval [in samples]
 		"""
+		# TODO: subtract the noise mean from the signal
+		noise_mean = PulseSignalNoiseEstimation(signal=signal, pulse_width=pulse_width).compute_noise_mean()
+		
 		self.signal: np.ndarray = signal
 		self.pulse_width: int = pulse_width
 		self.pri: int = pri
@@ -100,7 +99,7 @@ class SignalPulseMapping:
 		:param pulse_map: dataframe where each row contains a unique pulse signal
 		:return: the coherently integrated signal.
 		"""
-		# Calculate the element-wise sum of the pulses
+		# Sum the pulses element-wise
 		pulses_sum = np.sum(pulse_map['pulse'].values.tolist(), axis=0)
 		
 		return pulses_sum
@@ -119,16 +118,20 @@ class SignalPulseMapping:
 		             fontweight='bold')
 		
 		# Subplot 1: Integrated pulse signal
-		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal, pulse_width=self.pulse_width)
+		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal,
+		#                                                 pulse_width=self.pulse_width)
 		# integrated_snr_mod.display_noise_mean_estimation_process()
-		integrated_snr = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal, pulse_width=self.pulse_width).compute_signal_snr()
+		integrated_snr = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal,
+		                                            pulse_width=self.pulse_width).compute_signal_snr()
 		axes[0].plot(self.integrated_pulse_signal)
 		axes[0].set_title(f'Integrated pulse signal, SNR: {integrated_snr:.2f}')
 		
 		# Subplot 2: Integrated centered pulse signal
-		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal, pulse_width=self.pulse_width)
+		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal,
+		#                                                 pulse_width=self.pulse_width)
 		# integrated_snr_mod.display_noise_mean_estimation_process()
-		integrated_centered_snr = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal, pulse_width=self.pulse_width).compute_signal_snr()
+		integrated_centered_snr = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal,
+		                                                     pulse_width=self.pulse_width).compute_signal_snr()
 		axes[1].plot(self.integrated_centered_pulse_signal)
 		axes[1].set_title(f'Integrated centered pulse signal, SNR: {integrated_centered_snr:.2f}')
 		
@@ -153,10 +156,15 @@ if __name__ == "__main__":
 	# Extract the main_pd channel:
 	# main_current_signal = data_file.df['main_current'].values
 	main_current_signal = data_file.df['main_current'][:4096].values
+	# main_current_signal = data_file.df['main_current'][:2048].values
 	# main_current_signal = data_file.df['main_current'][:1024].values
-	# main_current_signal = data_file.df['main_current'][:512].values
-	# main_current_signal = data_file.df['main_current'][60:300].values
-	# main_current_signal = data_file.df['main_current'][60:250].values
+	
+	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:170].values  # 2 pulses, right side false
+	# main_current_signal = data_file.df['main_current'][60:225].values  # 2 pulses, left side false
+	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
+	# main_current_signal = data_file.df['main_current'][15:115].values  # 1 centered pulses, successful detection
 	
 	# Apply detection:
 	noise_estimation_mod = SignalPulseMapping(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH, pri=SIGNAL_PRI)
