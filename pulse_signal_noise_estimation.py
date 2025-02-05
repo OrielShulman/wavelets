@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 #  - characterize the noise in frequency domain, white noise will consist of all the frequencies
 #  - View auto-correlation for each noise segment (flat is fine)
 
+
 class PulseSignalNoiseEstimation:
 	"""
 	estimates the noise of a pulse signal
