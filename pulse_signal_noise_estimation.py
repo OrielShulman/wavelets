@@ -22,33 +22,45 @@ class PulseSignalNoiseEstimation:
 		self.pulse_detection_mod = ConvolutionPulseDetection(signal=self.signal, pulse_width=self.pulse_width)
 		
 		# Extract the noise out of the signal:
-		self.pulse_noise_indexes: pd.DataFrame = self.extract_pulse_noise()
+		self.pulse_noise_indices: pd.DataFrame = self.extract_pulse_noise_indices()
 		
 		# Trim noise indexes above the 90th percentile and pulse below 10th percentile:
 		self.trim_noise_pulse_out_layers()
-		
-	def extract_pulse_noise(self) -> pd.DataFrame:
+	
+	def extract_pulse_noise_indices(self) -> pd.DataFrame:
 		"""
 		extracts the pulse and the noise indexes in the input signal
+		pulses from both edges of the signal may be corrupted and result in false pulse detection,
+		thous, if the signal was detected with more than 3 pulses - first and last pulses are trimmed.
 		:return: dataframe with indexes for: [pulse_idx, noise_idx]
 		"""
-		# TODO: add usecase of single pulse
 		# detect pulse edges in the signal:
 		pulse_edges = self.pulse_detection_mod.detected_pulses_edge
-		# Discard the first and last pulses: (if more than 3 pulses are detected)
-		if len(pulse_edges) >= 3:
-			pulse_edges = pulse_edges.iloc[1:-1].reset_index(drop=True)
 		
 		# Extract indexes of pulse and noise:
 		pulse_idx = []
 		noise_idx = []
-		for i in range(len(pulse_edges)):
-			# pulse inside indexes:
-			pulse_idx.extend(range(pulse_edges['pulse_start'][i], pulse_edges['pulse_end'][i] + 1))
+		
+		# If only one pulse is detected (for the case of a centered pulse)
+		if len(pulse_edges) == 1:
 			
+			# pulse inside indexes:
+			pulse_idx.extend(range(pulse_edges['pulse_start'][0], pulse_edges['pulse_end'][0] + 1))
 			# non pulse indexes:
-			if i < len(pulse_edges) - 1:
-				noise_idx.extend(range(pulse_edges['pulse_end'][i] + 1, pulse_edges['pulse_start'][i+1]))
+			noise_idx.extend(range(0, pulse_edges['pulse_start'][0]))
+			noise_idx.extend(range(pulse_edges['pulse_end'][0] + 1, len(self.signal)))
+		
+		else:
+			# Discard the first and last pulses: (if more than 3 pulses are detected)
+			if len(pulse_edges) >= 3:
+				pulse_edges = pulse_edges.iloc[1:-1].reset_index(drop=True)
+			
+			for i in range(len(pulse_edges)):
+				# pulse inside indexes:
+				pulse_idx.extend(range(pulse_edges['pulse_start'][i], pulse_edges['pulse_end'][i] + 1))
+				# non pulse indexes:
+				if i < len(pulse_edges) - 1:
+					noise_idx.extend(range(pulse_edges['pulse_end'][i] + 1, pulse_edges['pulse_start'][i + 1]))
 		
 		# Create a data frame for the indexes:
 		return pd.DataFrame({'pulse_idx': pd.Series(pulse_idx), 'noise_idx': pd.Series(noise_idx)})
@@ -60,22 +72,28 @@ class PulseSignalNoiseEstimation:
 		:param p_noise: noise value percentile to trim above
 		:param p_pulse: pulse value percentile to trim below
 		"""
-		# Calculate the 90th percentile for noise samples:
-		percentile_noise = np.percentile(self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)], p_noise)
-		# Trim the points in noise_idx where the signal value is above the 90th percentile
-		self.pulse_noise_indexes.loc[self.pulse_noise_indexes['noise_idx'].apply(lambda x: pd.notna(x) and self.signal[int(x)] > percentile_noise), 'noise_idx'] = np.nan
+		if self.pulse_noise_indices['noise_idx'].notna().any():
+			# Calculate the 90th percentile for noise samples:
+			percentile_noise = np.percentile(self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)],
+			                                 p_noise)
+			# Trim the points in noise_idx where the signal value is above the 90th percentile
+			self.pulse_noise_indices.loc[self.pulse_noise_indices['noise_idx'].apply(
+				lambda x: pd.notna(x) and self.signal[int(x)] > percentile_noise), 'noise_idx'] = np.nan
 		
-		# Calculate the 10th percentile for pulse samples:
-		percentile_pulse = np.percentile(self.signal[self.pulse_noise_indexes['pulse_idx'].dropna().astype(int)], p_pulse)
-		# Trim the points in pulse_idx where the signal value is below the 10th percentile
-		self.pulse_noise_indexes.loc[self.pulse_noise_indexes['pulse_idx'].apply(lambda x: pd.notna(x) and self.signal[int(x)] < percentile_pulse), 'pulse_idx'] = np.nan
+		if self.pulse_noise_indices['pulse_idx'].notna().any():
+			# Calculate the 10th percentile for pulse samples:
+			percentile_pulse = np.percentile(self.signal[self.pulse_noise_indices['pulse_idx'].dropna().astype(int)],
+			                                 p_pulse)
+			# Trim the points in pulse_idx where the signal value is below the 10th percentile
+			self.pulse_noise_indices.loc[self.pulse_noise_indices['pulse_idx'].apply(
+				lambda x: pd.notna(x) and self.signal[int(x)] < percentile_pulse), 'pulse_idx'] = np.nan
 	
 	def compute_noise_mean(self) -> float:
 		"""
 		compute the mean value of the signal noise, the signal values that correspond to the noise indexes.
 		:return: signal noise mean
 		"""
-		noise_mean = self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)].mean()
+		noise_mean = self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)].mean()
 		return noise_mean
 	
 	def compute_pulse_mean(self) -> float:
@@ -83,7 +101,7 @@ class PulseSignalNoiseEstimation:
 		compute the mean value of the signal pulse amplitude, the signal values that correspond to the pulse indexes.
 		:return: signal pulse amplitude mean
 		"""
-		pulse_mean = self.signal[self.pulse_noise_indexes['pulse_idx'].dropna().astype(int)].mean()
+		pulse_mean = self.signal[self.pulse_noise_indices['pulse_idx'].dropna().astype(int)].mean()
 		return pulse_mean
 	
 	def compute_noise_std(self) -> float:
@@ -91,7 +109,7 @@ class PulseSignalNoiseEstimation:
 		compute the standard deviation of the signal noise, the signal values that correspond to the noise indexes.
 		:return: signal noise mean
 		"""
-		noise_std = self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)].std()
+		noise_std = self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)].std()
 		return noise_std
 	
 	def compute_signal_snr(self) -> float:
@@ -108,23 +126,23 @@ class PulseSignalNoiseEstimation:
 		display the mean values estimation process
 		"""
 		plt.figure(figsize=(12, 6))
-		num_pulse_samples = len(self.pulse_noise_indexes['pulse_idx'].dropna())
-		num_noise_samples = len(self.pulse_noise_indexes['noise_idx'].dropna())
+		num_pulse_samples = len(self.pulse_noise_indices['pulse_idx'].dropna())
+		num_noise_samples = len(self.pulse_noise_indices['noise_idx'].dropna())
 		plt.suptitle(f"Pulse signal with {len(self.signal)} Samples "
 		             f"({num_pulse_samples} pulse samples) "
 		             f"({num_noise_samples} noise samples)", fontweight='bold')
-
+		
 		# Plot the signal
 		plt.plot(self.signal, label='signal')
 		
 		# Plot the 'pulse' indexes in green
-		plt.plot(self.pulse_noise_indexes['pulse_idx'].dropna().astype(int),
-		         self.signal[self.pulse_noise_indexes['pulse_idx'].dropna().astype(int)],
+		plt.plot(self.pulse_noise_indices['pulse_idx'].dropna().astype(int),
+		         self.signal[self.pulse_noise_indices['pulse_idx'].dropna().astype(int)],
 		         color='green', label='pulse', marker='.', linestyle='None')
 		
 		# Plot the 'noise' indexes in orange
-		plt.plot(self.pulse_noise_indexes['noise_idx'].dropna().astype(int),
-		         self.signal[self.pulse_noise_indexes['noise_idx'].dropna().astype(int)],
+		plt.plot(self.pulse_noise_indices['noise_idx'].dropna().astype(int),
+		         self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)],
 		         color='red', label='noise', marker='.', linestyle='None')
 		
 		# Add title with the required information
@@ -152,13 +170,14 @@ if __name__ == "__main__":
 	# Extract the main_pd channel:
 	# main_current_signal = data_file.df['main_current'][:4096].values
 	# main_current_signal = data_file.df['main_current'][:2048].values
-	# main_current_signal = data_file.df['main_current'][:1024].values
+	main_current_signal = data_file.df['main_current'][:1024].values
 	
-	main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
 	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
-	# main_current_signal = data_file.df['main_current'][:250].values  # 3 pulses, right side false
-	# main_current_signal = data_file.df['main_current'][60:300].values  # 3 pulses, left side false
+	# main_current_signal = data_file.df['main_current'][:170].values  # 2 pulses, right side false
+	# main_current_signal = data_file.df['main_current'][60:225].values  # 2 pulses, left side false
 	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
+	# main_current_signal = data_file.df['main_current'][15:115].values  # 1 centered pulses, successful detection
 	
 	# Apply detection:
 	noise_estimation_mod = PulseSignalNoiseEstimation(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
