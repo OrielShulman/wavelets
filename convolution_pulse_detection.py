@@ -35,9 +35,6 @@ class ConvolutionPulseDetection:
 		generates a clean pulse signal for convolution
 		:return: pulse signal
 		"""
-		# TODO: is odd sized kernel neccesary?
-		# make the pulse odd sized for center aligned peak detection:
-		# pulse_width = self.pulse_width + 1 if self.pulse_width % 2 == 0 else self.pulse_width
 		return np.ones(self.pulse_width)
 	
 	def convolve_signal(self) -> np.ndarray:
