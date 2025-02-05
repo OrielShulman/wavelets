@@ -1,4 +1,5 @@
 from convolution_pulse_detection import ConvolutionPulseDetection
+from pulse_signal_noise_estimation import PulseSignalNoiseEstimation
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -54,7 +55,8 @@ class SignalPulseMapping:
 		interval_start -= self.pri // 2
 		
 		# slice the signal into pulses:
-		pulses = [self.signal[interval_start + i * self.pri: interval_start + (i + 1) * self.pri] for i in range(len(self.pulse_peaks) - 2)]
+		pulses = [self.signal[interval_start + i * self.pri:
+		                      interval_start + (i + 1) * self.pri] for i in range(len(self.pulse_peaks) - 2)]
 		
 		# Create a pulse map
 		pulse_map = pd.DataFrame(columns=['pulse'])
@@ -74,7 +76,7 @@ class SignalPulseMapping:
 		pulses = []
 		for center in pulse_centers:
 			start = center - self.pri // 2
-			end = center + self.pri // 2 + 1
+			end = start + self.pri
 			if start < 0 or end >= len(self.signal):
 				continue
 			pulses.append(self.signal[start:end])
@@ -88,50 +90,37 @@ class SignalPulseMapping:
 	@staticmethod
 	def integrate_pulse_map(pulse_map: pd.DataFrame) -> np.ndarray:
 		"""
-		Apply coherent integration by summing up signals row wise of a pandas data frame
-		and returns the sum of them as a 1D array.
+		Apply coherent integration by summing up signals in the pulse map and returns the sum of them as a 1D array.
 		:param pulse_map: dataframe where each row contains a unique pulse signal
-		:return: the coherently integrated signal
+		:return: the coherently integrated signal.
 		"""
 		# Calculate the element-wise sum of the pulses
 		pulses_sum = np.sum(pulse_map['pulse'].values.tolist(), axis=0)
 		
-		# Calculate the element-wise average of the pulses
-		pulses_average = np.mean(pulse_map['pulse'].values.tolist(), axis=0)
-		
 		return pulses_sum
 	
-	def display_noise_mean_estimation_process(self) -> None:
+	def display_coherent_integration_results(self) -> None:
 		"""
-		display the mean values estimation process
+		display the coherent integration results of both the pulse map and the centered pulse map.
 		"""
-		plt.figure(figsize=(12, 6))
-		num_pulse_samples = len(self.pulse_noise_indices['pulse_idx'].dropna())
-		num_noise_samples = len(self.pulse_noise_indices['noise_idx'].dropna())
-		plt.suptitle(f"Pulse signal with {len(self.signal)} Samples "
-		             f"({num_pulse_samples} pulse samples) "
-		             f"({num_noise_samples} noise samples)", fontweight='bold')
 		
-		# Plot the signal
-		plt.plot(self.signal, label='signal')
+		fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 10))
 		
-		# Plot the 'pulse' indexes in green
-		plt.plot(self.pulse_noise_indices['pulse_idx'].dropna().astype(int),
-		         self.signal[self.pulse_noise_indices['pulse_idx'].dropna().astype(int)],
-		         color='green', label='pulse', marker='.', linestyle='None')
+		# Compute the input signal SNR:
+		signal_snr = PulseSignalNoiseEstimation(signal=self.signal, pulse_width=self.pulse_width).compute_signal_snr()
+		plt.suptitle(f"Coherent integration for a pulse signal with:\n\n"
+		             f"{len(self.signal)} samples, {len(self.pulse_map)} pulses, and SNR: {signal_snr:.2f}\n",
+		             fontweight='bold')
 		
-		# Plot the 'noise' indexes in orange
-		plt.plot(self.pulse_noise_indices['noise_idx'].dropna().astype(int),
-		         self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)],
-		         color='red', label='noise', marker='.', linestyle='None')
+		# Subplot 1: Integrated pulse signal
+		axes[0].plot(self.integrated_pulse_signal)
+		axes[0].set_title(f'Integrated pulse signal ({len(self.integrated_pulse_signal)} samples)')
 		
-		# Add title with the required information
-		plt.title(f"pulse mean: {self.compute_pulse_mean():.2f}, "
-		          f"noise mean: {self.compute_noise_mean():.2f}, "
-		          f"signal SNR: {self.compute_signal_snr():.2f} dB")
+		# Subplot 2: Integrated centered pulse signal
+		axes[1].plot(self.integrated_centered_pulse_signal)
+		axes[1].set_title(f'Integrated centered pulse signal ({len(self.integrated_centered_pulse_signal)} samples)')
 		
 		plt.tight_layout()
-		plt.legend()
 		plt.show()
 	
 if __name__ == "__main__":
@@ -150,12 +139,12 @@ if __name__ == "__main__":
 	
 	# Extract the main_pd channel:
 	# main_current_signal = data_file.df['main_current'][:4084].values
-	# main_current_signal = data_file.df['main_current'][:1024].values
-	main_current_signal = data_file.df['main_current'][:512].values
+	main_current_signal = data_file.df['main_current'][:1024].values
+	# main_current_signal = data_file.df['main_current'][:512].values
 	# main_current_signal = data_file.df['main_current'][60:300].values
 	# main_current_signal = data_file.df['main_current'][60:250].values
 	
 	# Apply detection:
 	noise_estimation_mod = SignalPulseMapping(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH, pri=SIGNAL_PRI)
-	# noise_estimation_mod.display_noise_mean_estimation_process()
+	noise_estimation_mod.display_coherent_integration_results()
 	exit(0)
