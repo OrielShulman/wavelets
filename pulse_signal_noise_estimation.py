@@ -32,6 +32,7 @@ class PulseSignalNoiseEstimation:
 		extracts the pulse and the noise indexes in the input signal
 		:return: dataframe with indexes for: [pulse_idx, noise_idx]
 		"""
+		# TODO: add usecase of single pulse
 		# detect pulse edges in the signal:
 		pulse_edges = self.pulse_detection_mod.detected_pulses_edge
 		# Discard the first and last pulses: (if more than 3 pulses are detected)
@@ -138,7 +139,6 @@ class PulseSignalNoiseEstimation:
 
 if __name__ == "__main__":
 	from raw_data_file import RawDataFile
-	from signal import Signal
 	import os
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
@@ -150,11 +150,15 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	main_current_signal = data_file.df['main_current'][:4084].values
+	# main_current_signal = data_file.df['main_current'][:4096].values
+	# main_current_signal = data_file.df['main_current'][:2048].values
 	# main_current_signal = data_file.df['main_current'][:1024].values
-	# main_current_signal = data_file.df['main_current'][:512].values
-	# main_current_signal = data_file.df['main_current'][60:300].values
-	# main_current_signal = data_file.df['main_current'][60:250].values
+	
+	main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:250].values  # 3 pulses, right side false
+	# main_current_signal = data_file.df['main_current'][60:300].values  # 3 pulses, left side false
+	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
 	
 	# Apply detection:
 	noise_estimation_mod = PulseSignalNoiseEstimation(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
