@@ -1,8 +1,12 @@
 from convolution_pulse_detection import ConvolutionPulseDetection
 import os
-
 import numpy as np
 import pandas as pd
+
+# TODO: Implement:
+#  - expected number of pulses.
+#  - detection average PRI.
+#  - Pulse intensity over time.
 
 
 class ExperimentDataRank:

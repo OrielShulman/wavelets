@@ -1,9 +1,11 @@
 from convolution_pulse_detection import ConvolutionPulseDetection
 from pulse_signal_noise_estimation import PulseSignalNoiseEstimation
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
+# TODO: Continue: View the pulse sum (in dB)
+# TODO: Subtract the noise mean from the signal before building the pulse map.
 
 
 class SignalPulseMapping:
