@@ -167,10 +167,10 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	main_current_signal = data_file.df['main_current'][:300].values
-	# main_current_signal = data_file.df['main_current'][:250].values
-	# main_current_signal = data_file.df['main_current'][60:300].values
-	# main_current_signal = data_file.df['main_current'][60:250].values
+	main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
+	# main_current_signal = data_file.df['main_current'][:250].values  # 3 pulses, right side false
+	# main_current_signal = data_file.df['main_current'][60:300].values  # 3 pulses, left side false
+	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
 	
 	# Apply detection:
 	detection_module = ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
