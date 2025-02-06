@@ -4,9 +4,6 @@ import os
 import numpy as np
 import pandas as pd
 
-# TODO: Implement:
-#  - pulse intensity over time.
-
 
 class ExperimentDataRank:
 	"""
@@ -56,7 +53,6 @@ class ExperimentDataRank:
 			:return: number of pulses in the signal.
 			"""
 			n_pulses = (len(signal) * self.prf / self.sample_rate)
-			
 			return int(n_pulses)
 		
 		self.rank_df.loc['expected_n_pulses'] = [signal_n_pulses_expected(self.df[col].values) for col in self.df.columns]
@@ -86,8 +82,7 @@ class ExperimentDataRank:
 		"""
 		# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
 		pri_pixels = self.sample_rate / self.prf
-		
-		self.rank_df.loc['expected_pri'] = [pri_pixels for col in self.df.columns]
+		self.rank_df.loc['expected_pri'] = [pri_pixels] * len(self.rank_df.columns)
 	
 	def detected_pri(self) -> None:
 		"""
@@ -111,7 +106,6 @@ class ExperimentDataRank:
 		"""
 		assign the pulse width from the attached file metadata.
 		"""
-		
 		self.rank_df.loc['expected_pulse_width'] = [self.pulse_width] * len(self.rank_df.columns)
 
 	def estimate_snr(self) -> None:
@@ -126,7 +120,6 @@ class ExperimentDataRank:
 			"""
 			# noise estimation module:
 			noise_est_mod = PulseSignalNoiseEstimation(signal=signal, pulse_width=self.pulse_width)
-
 			return noise_est_mod.compute_signal_snr()
 		
 		self.rank_df.loc['signal_snr'] = [estimate_signal_snr(self.df[col].values) for col in self.df.columns]
@@ -169,9 +162,6 @@ class ExperimentDataRank:
 		self.rank_df.loc['pulse_intensity_mean'] = [res[0] for res in pulse_mean_std]
 		self.rank_df.loc['pulse_intensity_std'] = [res[1] for res in pulse_mean_std]
 		self.rank_df.loc['coefficient_of_variation'] = [res[1] / res[0] for res in pulse_mean_std]
-		
-		
-		pass
 
 
 if __name__ == "__main__":
