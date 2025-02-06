@@ -165,7 +165,7 @@ if __name__ == "__main__":
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	DATA_FILE_NAME = 'raw_112'
-	SIGNAL_PULSE_WIDTH = 49
+	SIGNAL_PULSE_WIDTH = 50
 	
 	# Read a data file:
 	file_path = os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv")
