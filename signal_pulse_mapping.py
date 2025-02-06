@@ -129,7 +129,7 @@ class SignalPulseMapping:
 		# plot the signal in dB:
 		integrated_signal_db = 20 * np.log10(np.abs(self.integrated_centered_pulse_signal))
 		ax.plot(integrated_signal_db)
-		ax.set_title(f'Integrated {len(self.pulse_map)} pulses, SNR: {integrated_centered_snr:.2f}')
+		ax.set_title(f'Integrated {len(self.pulse_map)} pulses [dB], SNR: {integrated_centered_snr:.2f}')
 		
 		plt.tight_layout()
 		plt.show()
