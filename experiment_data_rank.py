@@ -1,18 +1,11 @@
 from convolution_pulse_detection import ConvolutionPulseDetection
+from pulse_signal_noise_estimation import PulseSignalNoiseEstimation
 import os
 import numpy as np
 import pandas as pd
 
 # TODO: Implement:
-#  - expected number of pulses.
-#  - expected PRI.
 #  - pulse intensity over time.
-#  - signal SNR.
-# TODO: metadata expected:
-#  - [duty cycle]
-#  - [sample rate = 100Khz]
-#  - [pulse frequency = 1khz]
-#  - ask Ran.
 
 
 class ExperimentDataRank:
@@ -20,11 +13,10 @@ class ExperimentDataRank:
 	rank an experiment data for each channel:
 	"""
 	
-	def __init__(self, file_path: str, pulse_width: int, sample_rate: int, prf: int, duty_cycle: int):
+	def __init__(self, file_path: str, sample_rate: int, prf: int, duty_cycle: int):
 		"""
 		initiate data file class, reads the data from the file into a pandas dataframe
 		:param file_path: absolute path to the data file
-		:param pulse_width: [pixels]
 		:param sample_rate: [khz]
 		:param prf: [khz]
 		:param duty_cycle: [number in range (0, 100)]
@@ -34,10 +26,10 @@ class ExperimentDataRank:
 		self.df: pd.DataFrame = pd.read_csv(file_path)
 		
 		# Experiment metadata:
-		self.pulse_width: int = pulse_width     # [samples]
 		self.sample_rate: int = sample_rate     # [khz]
 		self.prf: int = prf                     # [khz]
 		self.duty_cycle: int = duty_cycle       # [1, 100]
+		self.pulse_width: int = int((self.sample_rate / self.prf) * (self.duty_cycle / 100))  # [samples]
 		
 		# Empty dataframe for ranking:
 		self.rank_df: pd.DataFrame = pd.DataFrame(columns=self.df.columns)
@@ -45,9 +37,10 @@ class ExperimentDataRank:
 		# Assess the quality of the data in the file:
 		self.expected_number_of_pulses()  # Number of pulses expected:
 		self.detected_number_of_pulses()  # Number of pulses detected:
-		self.expected_pri()  # Expected PRI
-		self.detected_pri()  # Detected pulses PRI
-		
+		self.expected_pri()  # Expected PRI [pixels]
+		self.detected_pri()  # Detected pulses PRI [pixels]
+		self.expected_pulse_width()  # Expected pulse width [pixels]
+		self.estimate_snr()  # Estimate the signal SNR.
 		self.pulse_intensity_variation()  # Compute pulse intensity mean and std
 		
 		pass
@@ -73,7 +66,7 @@ class ExperimentDataRank:
 		compute the number of pulses that was detected
 		"""
 		
-		def signal_n_pulses_detected(signal: np.ndarray) -> int:
+		def count_signal_pulses(signal: np.ndarray) -> int:
 			"""
 			for a single signal - count the number of peaks that was detected.
 			:param signal: input pulse signal
@@ -85,25 +78,16 @@ class ExperimentDataRank:
 			n_pulses = len(pulse_detection_mod.convolution_peaks[1: -1])
 			return n_pulses
 		
-		self.rank_df.loc['detected_n_pulses'] = [signal_n_pulses_detected(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['detected_n_pulses'] = [count_signal_pulses(self.df[col].values) for col in self.df.columns]
 		
 	def expected_pri(self) -> None:
 		"""
 		Assess the PRI from the attached file metadata.
 		"""
+		# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
+		pri_pixels = self.sample_rate / self.prf
 		
-		def signal_pri(signal: np.ndarray) -> float:
-			"""
-			for a single signal - compute the average PRI of the detected pulses.
-			:param signal: input pulse signal
-			:return: PRI [pixels].
-			"""
-			# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
-			pri_pixels = self.sample_rate / self.prf
-			
-			return pri_pixels
-		
-		self.rank_df.loc['expected_pri'] = [signal_pri(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['expected_pri'] = [pri_pixels for col in self.df.columns]
 	
 	def detected_pri(self) -> None:
 		"""
@@ -125,22 +109,28 @@ class ExperimentDataRank:
 	
 	def expected_pulse_width(self) -> None:
 		"""
-				Assess the PRI from the attached file metadata.
-				"""
+		assign the pulse width from the attached file metadata.
+		"""
 		
-		def signal_pulse_width(signal: np.ndarray) -> float:
-			"""
-			for a single signal - compute the average PRI of the detected pulses.
-			:param signal: input pulse signal
-			:return: Average PRI.
-			"""
-			# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
-			pri_pixels = self.sample_rate / self.prf
-			
-			return pri_pixels
-		
-		self.rank_df.loc['expected_pri'] = [signal_pri(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['expected_pulse_width'] = [self.pulse_width] * len(self.rank_df.columns)
 
+	def estimate_snr(self) -> None:
+		"""
+		estimate each channels SNR
+		"""
+		def estimate_signal_snr(signal: np.ndarray) -> float:
+			"""
+			Estimate the signal SNR
+			:param signal: input pulse signal
+			:return: the signal estimated SNR.
+			"""
+			# noise estimation module:
+			noise_est_mod = PulseSignalNoiseEstimation(signal=signal, pulse_width=self.pulse_width)
+
+			return noise_est_mod.compute_signal_snr()
+		
+		self.rank_df.loc['signal_snr'] = [estimate_signal_snr(self.df[col].values) for col in self.df.columns]
+	
 	def pulse_intensity_variation(self) -> None:
 		"""
 		for each channel, check the uniformity of the pulse intensities.
@@ -188,8 +178,7 @@ if __name__ == "__main__":
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	DATA_FILE_NAME = 'raw_112'
-	SIGNAL_PULSE_WIDTH = 49
-	SIGNAL_PRI = 100
+
 	# file metadata:
 	SAMPLE_RATE = 100  # [khz]
 	PRF = 1  # [khz]
@@ -197,7 +186,6 @@ if __name__ == "__main__":
 	
 	# Read a data file:
 	exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
-	                                   pulse_width=SIGNAL_PULSE_WIDTH,
 	                                   sample_rate=SAMPLE_RATE,
 	                                   prf=PRF,
 	                                   duty_cycle=DUTY_CYCLE)
