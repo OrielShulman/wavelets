@@ -109,7 +109,7 @@ class ConvolutionPulseDetection:
 		plot the detection proccess and results
 		:return:
 		"""
-		fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(12, 9))
+		fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(15, 8))
 		plt.suptitle(f"convolution pulse detection [pulse width = {self.pulse_width}]", fontweight='bold')
 		
 		# Subplot 1: Input Signal
