@@ -1,10 +1,10 @@
 from convolution_pulse_detection import ConvolutionPulseDetection
 from pulse_signal_noise_estimation import PulseSignalNoiseEstimation
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+plt.style.use("ggplot")
 
-# TODO: Continue: View the pulse sum (in dB)
 # TODO: Subtract the noise mean from the signal before building the pulse map.
 
 
@@ -111,31 +111,25 @@ class SignalPulseMapping:
 		display the coherent integration results of both the pulse map and the centered pulse map.
 		"""
 		
-		fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 10))
+		fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 8))
 		
 		# Compute the input signal SNR:
 		signal_snr = PulseSignalNoiseEstimation(signal=self.signal, pulse_width=self.pulse_width).compute_signal_snr()
-		plt.suptitle(f"Coherent integration for a pulse signal with:\n\n"
-		             f"{len(self.signal)} samples, {len(self.pulse_map)} pulses, and SNR: {signal_snr:.2f}\n",
+		plt.suptitle(f"Coherent integration\n\n"
+		             f"Pulse signal with {len(self.signal)} samples (signal SNR: {signal_snr:.2f})\n",
 		             fontweight='bold')
 		
-		# Subplot 1: Integrated pulse signal
-		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal,
-		#                                                 pulse_width=self.pulse_width)
-		# integrated_snr_mod.display_noise_mean_estimation_process()
-		integrated_snr = PulseSignalNoiseEstimation(signal=self.integrated_pulse_signal,
-		                                            pulse_width=self.pulse_width).compute_signal_snr()
-		axes[0].plot(self.integrated_pulse_signal)
-		axes[0].set_title(f'Integrated pulse signal, SNR: {integrated_snr:.2f}')
-		
-		# Subplot 2: Integrated centered pulse signal
+		# Plot integrated pulse signal:
 		# integrated_snr_mod = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal,
 		#                                                 pulse_width=self.pulse_width)
 		# integrated_snr_mod.display_noise_mean_estimation_process()
 		integrated_centered_snr = PulseSignalNoiseEstimation(signal=self.integrated_centered_pulse_signal,
 		                                                     pulse_width=self.pulse_width).compute_signal_snr()
-		axes[1].plot(self.integrated_centered_pulse_signal)
-		axes[1].set_title(f'Integrated centered pulse signal, SNR: {integrated_centered_snr:.2f}')
+		# ax.plot(self.integrated_centered_pulse_signal)
+		# plot the signal in dB:
+		integrated_signal_db = 20 * np.log10(np.abs(self.integrated_centered_pulse_signal))
+		ax.plot(integrated_signal_db)
+		ax.set_title(f'Integrated {len(self.pulse_map)} pulses, SNR: {integrated_centered_snr:.2f}')
 		
 		plt.tight_layout()
 		plt.show()
@@ -143,7 +137,6 @@ class SignalPulseMapping:
 
 if __name__ == "__main__":
 	from raw_data_file import RawDataFile
-	from signal import Signal
 	import os
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
@@ -156,10 +149,10 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	# main_current_signal = data_file.df['main_current'].values
+	main_current_signal = data_file.df['main_current'].values
 	# main_current_signal = data_file.df['main_current'][:4096].values
 	# main_current_signal = data_file.df['main_current'][:2048].values
-	main_current_signal = data_file.df['main_current'][:1024].values
+	# main_current_signal = data_file.df['main_current'][:1024].values
 	
 	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
 	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
@@ -172,3 +165,4 @@ if __name__ == "__main__":
 	noise_estimation_mod = SignalPulseMapping(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH, pri=SIGNAL_PRI)
 	noise_estimation_mod.display_coherent_integration_results()
 	exit(0)
+	
