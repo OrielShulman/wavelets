@@ -45,7 +45,8 @@ class ExperimentDataRank:
 		# Assess the quality of the data in the file:
 		self.expected_number_of_pulses()  # Number of pulses expected:
 		self.detected_number_of_pulses()  # Number of pulses detected:
-		self.detected_pri()
+		self.expected_pri()  # Expected PRI
+		self.detected_pri()  # Detected pulses PRI
 		
 		self.pulse_intensity_variation()  # Compute pulse intensity mean and std
 		
@@ -91,25 +92,24 @@ class ExperimentDataRank:
 		Assess the PRI from the attached file metadata.
 		"""
 		
-		def average_pri(signal: np.ndarray) -> float:
+		def signal_pri(signal: np.ndarray) -> float:
 			"""
 			for a single signal - compute the average PRI of the detected pulses.
 			:param signal: input pulse signal
-			:return: Average PRI.
+			:return: PRI [pixels].
 			"""
-			# detect pulses in the signal:
-			pulse_detection_mod = ConvolutionPulseDetection(signal=signal, pulse_width=self.pulse_width)
-			# count peaks (pulses center)
-			pulse_gaps_width = np.diff(pulse_detection_mod.convolution_peaks[1:-1])
-			return float(np.mean(pulse_gaps_width))
+			# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
+			pri_pixels = self.sample_rate / self.prf
+			
+			return pri_pixels
 		
-		self.rank_df.loc['detected_pri'] = [average_pri(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['expected_pri'] = [signal_pri(self.df[col].values) for col in self.df.columns]
 	
 	def detected_pri(self) -> None:
 		"""
 		extract the average distance between the detected pulses.
 		"""
-		def average_pri(signal: np.ndarray) -> float:
+		def signal_average_pri(signal: np.ndarray) -> float:
 			"""
 			for a single signal - compute the average PRI of the detected pulses.
 			:param signal: input pulse signal
@@ -121,8 +121,26 @@ class ExperimentDataRank:
 			pulse_gaps_width = np.diff(pulse_detection_mod.convolution_peaks[1:-1])
 			return float(np.mean(pulse_gaps_width))
 		
-		self.rank_df.loc['detected_pri'] = [average_pri(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['detected_pri'] = [signal_average_pri(self.df[col].values) for col in self.df.columns]
+	
+	def expected_pulse_width(self) -> None:
+		"""
+				Assess the PRI from the attached file metadata.
+				"""
 		
+		def signal_pulse_width(signal: np.ndarray) -> float:
+			"""
+			for a single signal - compute the average PRI of the detected pulses.
+			:param signal: input pulse signal
+			:return: Average PRI.
+			"""
+			# Calculate the Pulse Repetition Interval (PRI) in samples (pixels)
+			pri_pixels = self.sample_rate / self.prf
+			
+			return pri_pixels
+		
+		self.rank_df.loc['expected_pri'] = [signal_pri(self.df[col].values) for col in self.df.columns]
+
 	def pulse_intensity_variation(self) -> None:
 		"""
 		for each channel, check the uniformity of the pulse intensities.
@@ -163,13 +181,6 @@ class ExperimentDataRank:
 		self.rank_df.loc['coefficient_of_variation'] = [res[1] / res[0] for res in pulse_mean_std]
 		
 		
-		pass
-	
-	def number_of_expected_pulses(self) -> int:
-		"""
-		based on metadata sampling rate and PRI, return the number of pulses expected in the sample.
-		:return:  expected number of pulses per sample
-		"""
 		pass
 
 
