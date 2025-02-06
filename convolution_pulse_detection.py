@@ -121,7 +121,8 @@ class ConvolutionPulseDetection:
 		             self.convolution_result[self.convolution_peaks],
 		             "x",
 		             label='Detected Peaks')
-		axes[1].set_title(f'Convolution result (rect kernel length: {len(self.rect_kernel)}) with detected peaks')
+		axes[1].set_title(f'Convolution result (rect kernel length: {len(self.rect_kernel)}) with'
+		                  f' {len(self.convolution_peaks)} detected peaks')
 		axes[1].legend()
 		
 		# Subplot 3: Input Signal with Detected Peaks
@@ -143,7 +144,7 @@ if __name__ == "__main__":
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	DATA_FILE_NAME = 'raw_112'
-	SIGNAL_PULSE_WIDTH = 49
+	SIGNAL_PULSE_WIDTH = 50
 	
 	# Generate Pulse signal:
 	pulse_signal_params = {'n_samples': np.power(2, 7),
@@ -163,8 +164,13 @@ if __name__ == "__main__":
 	file_path = os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv")
 	data_file = RawDataFile(file_path=file_path)
 	
-	# Extract the main_pd channel:
-	main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
+	# Extract the main_current channel:
+	# main_current_signal = data_file.df['main_current'].values
+	# main_current_signal = data_file.df['main_current'][:4096].values
+	# main_current_signal = data_file.df['main_current'][:2048].values
+	main_current_signal = data_file.df['main_current'][:1024].values
+	
+	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
 	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
 	# main_current_signal = data_file.df['main_current'][:170].values  # 2 pulses, right side false
 	# main_current_signal = data_file.df['main_current'][60:225].values  # 2 pulses, left side false
