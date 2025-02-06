@@ -2,6 +2,8 @@ from convolution_pulse_detection import ConvolutionPulseDetection
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.style.use("ggplot")
+
 
 # TODO: Noise mapping:
 #  - characterize the noise in frequency domain, white noise will consist of all the frequencies
@@ -130,12 +132,10 @@ class PulseSignalNoiseEstimation:
 		"""
 		display the mean values estimation process
 		"""
-		plt.figure(figsize=(12, 6))
+		plt.figure(figsize=(15, 8))
 		num_pulse_samples = len(self.pulse_noise_indices['pulse_idx'].dropna())
 		num_noise_samples = len(self.pulse_noise_indices['noise_idx'].dropna())
-		plt.suptitle(f"Pulse signal with {len(self.signal)} Samples "
-		             f"({num_pulse_samples} pulse samples) "
-		             f"({num_noise_samples} noise samples)", fontweight='bold')
+		plt.suptitle(f"Pulse signal with {len(self.signal)} samples", fontweight='bold')
 		
 		# Plot the signal
 		plt.plot(self.signal, label='signal')
@@ -143,12 +143,12 @@ class PulseSignalNoiseEstimation:
 		# Plot the 'pulse' indexes in green
 		plt.plot(self.pulse_noise_indices['pulse_idx'].dropna().astype(int),
 		         self.signal[self.pulse_noise_indices['pulse_idx'].dropna().astype(int)],
-		         color='green', label='pulse', marker='.', linestyle='None')
+		         color='tab:green', label=f"({num_pulse_samples} pulse samples)", marker='.', linestyle='None')
 		
 		# Plot the 'noise' indexes in orange
 		plt.plot(self.pulse_noise_indices['noise_idx'].dropna().astype(int),
 		         self.signal[self.pulse_noise_indices['noise_idx'].dropna().astype(int)],
-		         color='red', label='noise', marker='.', linestyle='None')
+		         color='tab:blue', label=f"({num_noise_samples} noise samples)", marker='.', linestyle='None')
 		
 		# Add title with the required information
 		plt.title(f"pulse mean: {self.compute_pulse_mean():.2f}, "
