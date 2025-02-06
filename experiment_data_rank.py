@@ -159,13 +159,14 @@ class ExperimentDataRank:
 			return float(np.mean(pulses_mean)), float(np.std(pulses_mean) + 1)
 		
 		pulse_mean_std = [signal_pulse_amplitude_variation(self.df[col].values) for col in self.df.columns]
-		self.rank_df.loc['pulse_amplitude_mean'] = [res[0] for res in pulse_mean_std]
-		self.rank_df.loc['pulse_amplitude_std'] = [res[1] for res in pulse_mean_std]
-		self.rank_df.loc['coefficient_of_variation'] = [res[1] / res[0] for res in pulse_mean_std]
+		self.rank_df.loc['pulse_amp_mean'] = [res[0] for res in pulse_mean_std]
+		self.rank_df.loc['pulse_amp_std'] = [res[1] for res in pulse_mean_std]
+		self.rank_df.loc['pulse_amp_coefficient_of_variation'] = [res[1] / res[0] for res in pulse_mean_std]
 
 
 if __name__ == "__main__":
 	from datetime import datetime
+	import matplotlib.pyplot as plt
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	RESULTS_DIR_PATH = r'C:\Work\dym\data_quality_assessments'
@@ -220,17 +221,47 @@ if __name__ == "__main__":
 		new_filename = f"{files_dir_name}_files_assessment_results_{timestamp}.csv"
 		experiments_assessment_results_df.to_csv(os.path.join(save_dir_path, new_filename), index=False)
 	
-	assess_experiment_directory(dir_path=RAW_DATA_DIR_PATH,
-	                            sample_rate=EXP_METADATA['SAMPLE_RATE'],
-	                            prf=EXP_METADATA['PRF'],
-	                            duty_cycle=EXP_METADATA['DUTY_CYCLE'],
-	                            save_dir_path=RESULTS_DIR_PATH)
+	# assess_experiment_directory(dir_path=RAW_DATA_DIR_PATH,
+	#                             sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	#                             prf=EXP_METADATA['PRF'],
+	#                             duty_cycle=EXP_METADATA['DUTY_CYCLE'],
+	#                             save_dir_path=RESULTS_DIR_PATH)
 	
-	# # Read a data file:
-	# exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
-	#                                    sample_rate=EXP_METADATA['SAMPLE_RATE'],
-	#                                    prf=EXP_METADATA['PRF'],
-	#                                    duty_cycle=EXP_METADATA['DUTY_CYCLE'])
-	# exp_data_assessment = exp_data_rank.rank_df
+	def plot_df(df: pd.DataFrame) -> None:
+		"""
+		plot an example of a pandas df
+		:param df: experiment rank df
+		"""
+		df = df.map(lambda x: f'{x:.2f}' if isinstance(x, float) else f'{int(x)}')
+		
+		# Plot the table
+		fig, ax = plt.subplots(figsize=(15, 4))  # Set the figure size
+		ax.axis('tight')
+		ax.axis('off')
+		table = ax.table(cellText=df.values, colLabels=df.columns, rowLabels=df.index, cellLoc='center', loc='center')
+		
+		# Adjust the font size
+		table.auto_set_font_size(False)
+		table.set_fontsize(12)
+		table.scale(1, 1.7)
+		table.auto_set_column_width(col=list(range(len(df.columns))))
+		
+		# Adjust the position of the table to fill the figure
+		for key, cell in table.get_celld().items():
+			cell.set_height(1 / (len(df.index) + 1))
+			cell.set_width(1 / (len(df.columns) + 1))
+			cell.set_edgecolor('white')  # Set the color of the lines
+			cell.set_facecolor('gainsboro')  # Set the background color
+		
+		plt.tight_layout()
+		plt.show()
+		
+	# Read a data file:
+	exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
+	                                   sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	                                   prf=EXP_METADATA['PRF'],
+	                                   duty_cycle=EXP_METADATA['DUTY_CYCLE'])
+	exp_data_assessment = exp_data_rank.rank_df
+	plot_df(df=exp_data_assessment)
 	exit(0)
 	
