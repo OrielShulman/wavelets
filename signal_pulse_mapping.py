@@ -148,7 +148,7 @@ if __name__ == "__main__":
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	DATA_FILE_NAME = 'raw_112'
-	SIGNAL_PULSE_WIDTH = 49
+	SIGNAL_PULSE_WIDTH = 50
 	SIGNAL_PRI = 100
 	
 	# Read a data file:
@@ -157,9 +157,9 @@ if __name__ == "__main__":
 	
 	# Extract the main_pd channel:
 	# main_current_signal = data_file.df['main_current'].values
-	main_current_signal = data_file.df['main_current'][:4096].values
+	# main_current_signal = data_file.df['main_current'][:4096].values
 	# main_current_signal = data_file.df['main_current'][:2048].values
-	# main_current_signal = data_file.df['main_current'][:1024].values
+	main_current_signal = data_file.df['main_current'][:1024].values
 	
 	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
 	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
