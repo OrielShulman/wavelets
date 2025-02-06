@@ -38,7 +38,7 @@ class ExperimentDataRank:
 		self.detected_pri()  # Detected pulses PRI [pixels]
 		self.expected_pulse_width()  # Expected pulse width [pixels]
 		self.estimate_snr()  # Estimate the signal SNR.
-		self.pulse_intensity_variation()  # Compute pulse intensity mean and std
+		self.pulse_amplitude_variation()  # Compute pulse amplitude mean and std
 		
 		pass
 	
@@ -124,16 +124,16 @@ class ExperimentDataRank:
 		
 		self.rank_df.loc['signal_snr'] = [estimate_signal_snr(self.df[col].values) for col in self.df.columns]
 	
-	def pulse_intensity_variation(self) -> None:
+	def pulse_amplitude_variation(self) -> None:
 		"""
 		for each channel, check the uniformity of the pulse intensities.
 		- split to pulses.
-		- check each pulse mean intensity.
+		- check each pulse mean amplitude.
 		- calculate the pulse intensities deviation.
-		:return: pulse intensity mean and std
+		:return: pulse amplitude mean and std
 		"""
 		
-		def signal_pulse_intensity_variation(signal: np.ndarray) -> tuple[float, float]:
+		def signal_pulse_amplitude_variation(signal: np.ndarray) -> tuple[float, float]:
 			"""
 			compute the pulse mean intensities mean and std
 			:param signal: input signal
@@ -142,7 +142,7 @@ class ExperimentDataRank:
 			# detect pulses in the signal:
 			pulse_detection_mod = ConvolutionPulseDetection(signal=signal, pulse_width=self.pulse_width)
 			
-			# Extract the pulses intensity values:
+			# Extract the pulses amplitude values:
 			pulses_values = []
 			for center in pulse_detection_mod.convolution_peaks[1:-1]:
 				start = center - self.pulse_width // 2
@@ -152,15 +152,15 @@ class ExperimentDataRank:
 				pulses_values.append(signal[start:end])
 			pulses_values = np.array(pulses_values)
 			
-			# compute each pulse intensity mean value:
+			# compute each pulse amplitude mean value:
 			pulses_mean = np.mean(pulses_values, axis=0)
 			
-			# compute the intensity values its mean and std
+			# compute the amplitude values mean and std
 			return float(np.mean(pulses_mean)), float(np.std(pulses_mean) + 1)
 		
-		pulse_mean_std = [signal_pulse_intensity_variation(self.df[col].values) for col in self.df.columns]
-		self.rank_df.loc['pulse_intensity_mean'] = [res[0] for res in pulse_mean_std]
-		self.rank_df.loc['pulse_intensity_std'] = [res[1] for res in pulse_mean_std]
+		pulse_mean_std = [signal_pulse_amplitude_variation(self.df[col].values) for col in self.df.columns]
+		self.rank_df.loc['pulse_amplitude_mean'] = [res[0] for res in pulse_mean_std]
+		self.rank_df.loc['pulse_amplitude_std'] = [res[1] for res in pulse_mean_std]
 		self.rank_df.loc['coefficient_of_variation'] = [res[1] / res[0] for res in pulse_mean_std]
 
 
