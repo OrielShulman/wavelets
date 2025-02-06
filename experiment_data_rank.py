@@ -165,20 +165,70 @@ class ExperimentDataRank:
 
 
 if __name__ == "__main__":
+	from datetime import datetime
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
+	RESULTS_DIR_PATH = r'C:\Work\dym\data_quality_assessments'
 	DATA_FILE_NAME = 'raw_112'
-
-	# file metadata:
-	SAMPLE_RATE = 100  # [khz]
-	PRF = 1  # [khz]
-	DUTY_CYCLE = 50  # [1, 100]
+	EXP_METADATA = {
+		'SAMPLE_RATE': 100,     # [khz]
+		'PRF': 1,               # [khz]
+		'DUTY_CYCLE': 50,       # (0, 100)
+	}
 	
-	# Read a data file:
-	exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
-	                                   sample_rate=SAMPLE_RATE,
-	                                   prf=PRF,
-	                                   duty_cycle=DUTY_CYCLE)
-	exp_data_assessment = exp_data_rank.rank_df
+	def assess_experiment_directory(
+			dir_path: str, sample_rate: int, prf: int, duty_cycle: int, save_dir_path: str) -> None:
+		"""
+		assess the experiment files in the experiments directory and save the assessment results to a new file.
+		:param dir_path: path to the directory that contains the experiments raw data files.
+		:param sample_rate: [khz]
+		:param prf: [khz]
+		:param duty_cycle: percentage in scale (0, 100)
+		:param save_dir_path: path to save the results to
+		"""
+		experiments_assessment_results = []
+		
+		# Iterate over files in the target directory:
+		for file_name in os.listdir(dir_path):
+			print(f"Assessing file: {file_name} [{len(experiments_assessment_results)} out of {len(os.listdir(dir_path))}]")
+			file_path = os.path.join(dir_path, file_name)
+			# Check if the file is a CSV file:
+			if os.path.isfile(file_path) and file_path.endswith('.csv'):
+				# Apply Experiment file data quality assessment:
+				exp_data_res = ExperimentDataRank(file_path=file_path,
+				                                  sample_rate=sample_rate,
+				                                  prf=prf,
+				                                  duty_cycle=duty_cycle).rank_df
+				# Rearrange result as a one line:
+				transformed_df = pd.DataFrame()  # Create a new dataframe with the transformed columns
+				transformed_df['file_name'] = [f'{os.path.splitext(file_name)[0]}']  # Add a 'file_name' column
+				for col_index in exp_data_res.columns:
+					for row_index in exp_data_res.index:
+						new_col_name = f'{col_index}_{row_index}'
+						transformed_df[new_col_name] = [exp_data_res.at[row_index, col_index]]
+				# Append the transformed dataframe to the list
+				experiments_assessment_results.append(transformed_df)
+				
+		# Concatenate all the transformed dataframes into a single dataframe
+		experiments_assessment_results_df = pd.concat(experiments_assessment_results, ignore_index=True)
+		
+		# Save the new result df to a csv file:
+		timestamp = datetime.now().strftime("%Y_%m_%d_%H%M")
+		files_dir_name = os.path.basename(os.path.normpath(dir_path))
+		new_filename = f"{files_dir_name}_files_assessment_results_{timestamp}.csv"
+		experiments_assessment_results_df.to_csv(os.path.join(save_dir_path, new_filename), index=False)
+	
+	assess_experiment_directory(dir_path=RAW_DATA_DIR_PATH,
+	                            sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	                            prf=EXP_METADATA['PRF'],
+	                            duty_cycle=EXP_METADATA['DUTY_CYCLE'],
+	                            save_dir_path=RESULTS_DIR_PATH)
+	
+	# # Read a data file:
+	# exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
+	#                                    sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	#                                    prf=EXP_METADATA['PRF'],
+	#                                    duty_cycle=EXP_METADATA['DUTY_CYCLE'])
+	# exp_data_assessment = exp_data_rank.rank_df
 	exit(0)
 	
