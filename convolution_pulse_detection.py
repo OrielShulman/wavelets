@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from scipy.signal import convolve, find_peaks
+import matplotlib.pyplot as plt
+plt.style.use("ggplot")
 
 
 class ConvolutionPulseDetection:
@@ -108,7 +109,7 @@ class ConvolutionPulseDetection:
 		plot the detection proccess and results
 		:return:
 		"""
-		fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(12, 10))
+		fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(12, 9))
 		plt.suptitle(f"convolution pulse detection [pulse width = {self.pulse_width}]", fontweight='bold')
 		
 		# Subplot 1: Input Signal
@@ -128,8 +129,8 @@ class ConvolutionPulseDetection:
 		# Subplot 3: Input Signal with Detected Peaks
 		axes[2].plot(self.signal)
 		for i, row in self.detected_pulses_edge.iterrows():
-			axes[2].axvline(x=row['pulse_start'], color='g', linestyle='--', label='pulse start' if i == 0 else "")
-			axes[2].axvline(x=row['pulse_end'], color='r', linestyle='--', label='pulse start' if i == 0 else "")
+			axes[2].axvline(x=row['pulse_start'], color='tab:green', linestyle='--', label='pulse start' if i == 0 else "")
+			axes[2].axvline(x=row['pulse_end'], color='tab:blue', linestyle='--', label='pulse start' if i == 0 else "")
 		axes[2].set_title('Input signal with detected peaks')
 		axes[2].legend()
 		
