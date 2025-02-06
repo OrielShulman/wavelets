@@ -221,11 +221,11 @@ if __name__ == "__main__":
 		new_filename = f"{files_dir_name}_files_assessment_results_{timestamp}.csv"
 		experiments_assessment_results_df.to_csv(os.path.join(save_dir_path, new_filename), index=False)
 	
-	# assess_experiment_directory(dir_path=RAW_DATA_DIR_PATH,
-	#                             sample_rate=EXP_METADATA['SAMPLE_RATE'],
-	#                             prf=EXP_METADATA['PRF'],
-	#                             duty_cycle=EXP_METADATA['DUTY_CYCLE'],
-	#                             save_dir_path=RESULTS_DIR_PATH)
+	assess_experiment_directory(dir_path=RAW_DATA_DIR_PATH,
+	                            sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	                            prf=EXP_METADATA['PRF'],
+	                            duty_cycle=EXP_METADATA['DUTY_CYCLE'],
+	                            save_dir_path=RESULTS_DIR_PATH)
 	
 	def plot_df(df: pd.DataFrame) -> None:
 		"""
@@ -257,11 +257,11 @@ if __name__ == "__main__":
 		plt.show()
 		
 	# Read a data file:
-	exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
-	                                   sample_rate=EXP_METADATA['SAMPLE_RATE'],
-	                                   prf=EXP_METADATA['PRF'],
-	                                   duty_cycle=EXP_METADATA['DUTY_CYCLE'])
-	exp_data_assessment = exp_data_rank.rank_df
-	plot_df(df=exp_data_assessment)
+	# exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
+	#                                    sample_rate=EXP_METADATA['SAMPLE_RATE'],
+	#                                    prf=EXP_METADATA['PRF'],
+	#                                    duty_cycle=EXP_METADATA['DUTY_CYCLE'])
+	# exp_data_assessment = exp_data_rank.rank_df
+	# plot_df(df=exp_data_assessment)
 	exit(0)
 	
