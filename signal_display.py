@@ -62,11 +62,14 @@ def plot_dwt_scalogram(signal: np.ndarray,
 	:param wavelet_method: wavelet method used for DWT
 	"""
 	# Create a figure with 2 subplots
-	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 12), sharex='all', gridspec_kw={'height_ratios': [2, 5, 5]})
-	
+	fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(12, 16), sharex='all',
+	                                         gridspec_kw={'height_ratios': [2, 5, 5, 5]})
+	# Set the main title
+	fig.suptitle(f"DWT scalogram for pulse signal with {len(signal)} samples\n", fontweight='bold')
+
 	# Plot the original signal
 	ax1.plot(signal)
-	ax1.set_title(f"Original Signal ({signal.size} samples)")
+	ax1.set_title(f"Original Signal")
 	ax1.set_xlabel('Sample')
 	ax1.set_ylabel('Amplitude')
 	
@@ -92,7 +95,7 @@ def plot_dwt_scalogram(signal: np.ndarray,
 	ax2.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
 	ax2.set_xlabel('Sample')
 	ax2.set_ylabel('Level')
-	ax2.set_title(f"Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	ax2.set_title(f"Scalogram of {wavelet_method} DWT Detail Coefficients")
 	fig.colorbar(cax, ax=ax2, orientation='horizontal', label='Coefficient Value')
 	
 	# Plot the absolute value scalogram:
@@ -112,11 +115,24 @@ def plot_dwt_scalogram(signal: np.ndarray,
 	ax3.set_yticklabels([f'{i}' for i in range(1, len(detail_coeffs) + 1)])
 	ax3.set_xlabel('Sample')
 	ax3.set_ylabel('Level')
-	ax3.set_title(f"Absolute value Scalogram of DWT Detail Coefficients ({wavelet_method})")
+	ax3.set_title(f"Absolute value Scalogram of {wavelet_method} DWT Detail Coefficients")
 	fig.colorbar(abs_cax, ax=ax3, orientation='horizontal', label='Coefficient Value')
 	
+	# ax4: Plot the scalogram in dB:
+	db_combined_coeffs = 20 * np.log10(abs_scalogram + np.finfo(float).eps)
+	cax4 = ax4.imshow(db_combined_coeffs[::-1],
+	                  extent=[0, len(signal), 0.5, len(coeffs) + 0.5],
+	                  aspect='auto',
+	                  cmap='magma',
+	                  vmin=np.min(db_combined_coeffs),
+	                  vmax=np.max(db_combined_coeffs))
+	ax4.set_yticks(range(1, len(db_combined_coeffs) + 1))
+	ax4.set_yticklabels([f'{i}' for i in range(1, len(db_combined_coeffs) + 1)])
+	ax4.set_xlabel('Sample')
+	ax4.set_ylabel('Level')
+	ax4.set_title(f"logarithmic Scalogram of {wavelet_method} DWT Detail Coefficients [dB]")
+	fig.colorbar(cax4, ax=ax4, orientation='horizontal', label='Coefficient Value')
 	# Plot:
-	fig.suptitle(f"DWT scalogram for:\n\n{signal_info}\n", fontweight='bold')
 	plt.tight_layout()
 	plt.show()
 
@@ -133,15 +149,14 @@ def plot_swt_scalogram(signal: np.ndarray,
 	:param wavelet_method: wavelet method used for SWT
 	"""
 	# Create a figure with subplots
-	fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(10, 16), sharex='all',
+	fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(12, 16), sharex='all',
 	                                         gridspec_kw={'height_ratios': [2, 5, 5, 5]})
-	
 	# Set the main title
-	fig.suptitle(f"SWT scalogram for:\n\n{signal_info}\n", fontweight='bold')
+	fig.suptitle(f"SWT scalogram for pulse signal with {len(signal)} samples\n", fontweight='bold')
 	
 	# ax1: Plot the original signal
 	ax1.plot(signal)
-	ax1.set_title(f"Original Signal ({signal.size} samples)")
+	ax1.set_title(f"Original Signal")
 	ax1.set_xlabel('Sample')
 	ax1.set_ylabel('Amplitude')
 	ax1.tick_params(axis='x', which='both', bottom=True, top=False, labelbottom=True)
@@ -158,7 +173,7 @@ def plot_swt_scalogram(signal: np.ndarray,
 	ax2.set_yticklabels([f'{i}' for i in range(1, len(combined_coeffs) + 1)])
 	ax2.set_xlabel('Sample')
 	ax2.set_ylabel('Level')
-	ax2.set_title(f"Scalogram of SWT Detail Coefficients ({wavelet_method})")
+	ax2.set_title(f"Scalogram of {wavelet_method} SWT Detail Coefficients")
 	fig.colorbar(cax2, ax=ax2, orientation='horizontal', label='Coefficient Value')
 	
 	# ax3: Plot the abs value scalogram:
@@ -173,7 +188,7 @@ def plot_swt_scalogram(signal: np.ndarray,
 	ax3.set_yticklabels([f'{i}' for i in range(1, len(abs_combined_coeffs) + 1)])
 	ax3.set_xlabel('Sample')
 	ax3.set_ylabel('Level')
-	ax3.set_title(f"Absolute value Scalogram of SWT Detail Coefficients ({wavelet_method})")
+	ax3.set_title(f"Absolute value Scalogram of {wavelet_method} SWT Detail Coefficients")
 	fig.colorbar(cax3, ax=ax3, orientation='horizontal', label='Coefficient Value')
 	
 	# ax4: Plot the scalogram in dB:
@@ -188,7 +203,7 @@ def plot_swt_scalogram(signal: np.ndarray,
 	ax4.set_yticklabels([f'{i}' for i in range(1, len(db_combined_coeffs) + 1)])
 	ax4.set_xlabel('Sample')
 	ax4.set_ylabel('Level')
-	ax4.set_title(f"logarithmic Scalogram of SWT Detail Coefficients [dB] ({wavelet_method})")
+	ax4.set_title(f"logarithmic Scalogram of {wavelet_method} SWT Detail Coefficients [dB]")
 	fig.colorbar(cax4, ax=ax4, orientation='horizontal', label='Coefficient Value')
 	
 	plt.tight_layout()
