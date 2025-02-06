@@ -121,9 +121,8 @@ class ConvolutionPulseDetection:
 		axes[1].plot(self.convolution_peaks,
 		             self.convolution_result[self.convolution_peaks],
 		             "x",
-		             label='Detected Peaks')
-		axes[1].set_title(f'Convolution result (rect kernel length: {len(self.rect_kernel)}) with'
-		                  f' {len(self.convolution_peaks)} detected peaks')
+		             label=f'{len(self.convolution_peaks)} detected Peaks')
+		axes[1].set_title(f'Convolution result (rect kernel length: {len(self.rect_kernel)})')
 		axes[1].legend()
 		
 		# Subplot 3: Input Signal with Detected Peaks
@@ -131,7 +130,7 @@ class ConvolutionPulseDetection:
 		for i, row in self.detected_pulses_edge.iterrows():
 			axes[2].axvline(x=row['pulse_start'], color='tab:green', linestyle='--', label='pulse start' if i == 0 else "")
 			axes[2].axvline(x=row['pulse_end'], color='tab:blue', linestyle='--', label='pulse start' if i == 0 else "")
-		axes[2].set_title('Input signal with detected peaks')
+		axes[2].set_title('Input signal with detected pulse edges')
 		axes[2].legend()
 		
 		plt.tight_layout()
