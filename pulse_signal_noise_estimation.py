@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 # TODO: Noise mapping:
 #  - characterize the noise in frequency domain, white noise will consist of all the frequencies
 #  - View auto-correlation for each noise segment (flat is fine)
+# TODO: do i want the noise/pulse coefficient of variation?
 
 
 class PulseSignalNoiseEstimation:
