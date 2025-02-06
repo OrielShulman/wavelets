@@ -209,7 +209,8 @@ if __name__ == "__main__":
 						transformed_df[new_col_name] = [exp_data_res.at[row_index, col_index]]
 				# Append the transformed dataframe to the list
 				experiments_assessment_results.append(transformed_df)
-				print(f"Finished assessing file {file_name} in {datetime.now() - t_start:.2f}")
+				print(f"\tFinished assessing file {file_name} in "
+				      f"{(datetime.now() - t_start).total_seconds():.1f} seconds\n")
 				
 		# Concatenate all the transformed dataframes into a single dataframe
 		experiments_assessment_results_df = pd.concat(experiments_assessment_results, ignore_index=True)
