@@ -191,7 +191,7 @@ if __name__ == "__main__":
 		# Iterate over files in the target directory:
 		for file_name in os.listdir(dir_path):
 			t_start = datetime.now()
-			print(f"Assessing file: {file_name} [{len(experiments_assessment_results)} out of {len(os.listdir(dir_path))}]")
+			print(f"Assessing file: {file_name} [{len(experiments_assessment_results) + 1} out of {len(os.listdir(dir_path))}]")
 			file_path = os.path.join(dir_path, file_name)
 			# Check if the file is a CSV file:
 			if os.path.isfile(file_path) and file_path.endswith('.csv'):
@@ -209,8 +209,7 @@ if __name__ == "__main__":
 						transformed_df[new_col_name] = [exp_data_res.at[row_index, col_index]]
 				# Append the transformed dataframe to the list
 				experiments_assessment_results.append(transformed_df)
-				print(f"\tFinished assessing file {file_name} in "
-				      f"{(datetime.now() - t_start).total_seconds():.1f} seconds\n")
+				print(f"\tFinished in {(datetime.now() - t_start).total_seconds():.1f} seconds")
 				
 		# Concatenate all the transformed dataframes into a single dataframe
 		experiments_assessment_results_df = pd.concat(experiments_assessment_results, ignore_index=True)
