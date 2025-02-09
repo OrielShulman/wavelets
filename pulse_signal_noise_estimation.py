@@ -5,12 +5,6 @@ import matplotlib.pyplot as plt
 plt.style.use("ggplot")
 
 
-# TODO: Noise mapping:
-#  - characterize the noise in frequency domain, white noise will consist of all the frequencies
-#  - View auto-correlation for each noise segment (flat is fine)
-# TODO: do i want the noise/pulse coefficient of variation?
-
-
 class PulseSignalNoiseEstimation:
 	"""
 	estimates the noise of a pulse signal
