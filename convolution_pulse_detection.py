@@ -82,28 +82,7 @@ class ConvolutionPulseDetection:
 		for _, row in self.detected_pulses_edge.iterrows():
 			gen_signal[int(row['pulse_start']):int(row['pulse_end'])] = np.max(self.signal)
 		return gen_signal
-	
-	def check_pulses_margins(self) -> pd.DataFrame:
-		"""
-		check margins between pulses, each pulse row will be added with a column for indication of margins
-		:return:
-		"""
-		margin_df = pd.DataFrame(columns=['pulse_start', 'pulse_end', 'overlapping_pulses'])
 		
-		for i, row in self.detected_pulses_edge.iterrows():
-			overlapping_pulses = []
-			for j, other_row in self.detected_pulses_edge.iterrows():
-				if i != j:
-					if not (row['pulse_end'] < other_row['pulse_start'] or row['pulse_start'] > other_row['pulse_end']):
-						overlapping_pulses.append(j)
-			
-			margin_df = pd.concat(
-				[margin_df, pd.DataFrame({'pulse_start': [row['pulse_start']], 'pulse_end': [row['pulse_end']],
-				                          'overlapping_pulses': [overlapping_pulses]})],
-				ignore_index=True)
-		
-		return margin_df
-	
 	def display_detection_process(self) -> None:
 		"""
 		plot the detection proccess and results
@@ -164,23 +143,23 @@ if __name__ == "__main__":
 	file_path = os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv")
 	data_file = RawDataFile(file_path=file_path)
 	
-	# Extract the main_current channel:
-	# main_current_signal = data_file.df['main_current'].values
-	# main_current_signal = data_file.df['main_current'][:4096].values
-	# main_current_signal = data_file.df['main_current'][:2048].values
-	main_current_signal = data_file.df['main_current'][:1024].values
+	# Extract the main_pd channel:
+	main_pd_signal = data_file.df['main_pd'].values
+	# signa_partial = main_pd_signal
+	# signa_partial = main_pd_signal[:4096]
+	# signa_partial = main_pd_signal[:2048]
+	signa_partial = main_pd_signal[:1024]
 	
-	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
-	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
-	# main_current_signal = data_file.df['main_current'][:170].values  # 2 pulses, right side false
-	# main_current_signal = data_file.df['main_current'][60:225].values  # 2 pulses, left side false
-	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
-	# main_current_signal = data_file.df['main_current'][15:115].values  # 1 centered pulses, successful detection
+	# signa_partial = main_pd_signal[:512]  # 5 pulses, all pulses OK
+	# signa_partial = main_pd_signal[:300]  # 3 pulses, all pulses OK
+	# signa_partial = main_pd_signal[:170]  # 2 pulses, right side false
+	# signa_partial = main_pd_signal[60:225]  # 2 pulses, left side false
+	# signa_partial = main_pd_signal[60:250]  # 3 pulses, both sides false
+	# signa_partial = main_pd_signal[15:115]  # 1 centered pulses, successful detection
 	
 	# Apply detection:
-	detection_module = ConvolutionPulseDetection(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
-	synthesized_signal = detection_module.synthesize_pulse_signal()
-	pulses_with_margins = detection_module.check_pulses_margins()
+	detection_module = ConvolutionPulseDetection(signal=signa_partial, pulse_width=SIGNAL_PULSE_WIDTH)
+	# synthesized_signal = detection_module.synthesize_pulse_signal()
 	detection_module.display_detection_process()
 	exit(0)
 	
