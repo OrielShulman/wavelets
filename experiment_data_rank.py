@@ -46,14 +46,14 @@ class ExperimentDataRank:
 		"""
 		Assess the number of pulses that should be in the sample from the attached metadata.
 		"""
-		def signal_n_pulses_expected(signal: np.ndarray) -> int:
+		def signal_n_pulses_expected(signal: np.ndarray) -> float:
 			"""
 			for a single signal - count the number of peaks that was detected.
 			:param signal: input pulse signal
 			:return: number of pulses in the signal.
 			"""
 			n_pulses = (len(signal) * self.prf / self.sample_rate)
-			return int(n_pulses)
+			return n_pulses
 		
 		self.rank_df.loc['expected_n_pulses'] = [signal_n_pulses_expected(self.df[col].values) for col in self.df.columns]
 	
@@ -170,7 +170,6 @@ if __name__ == "__main__":
 	
 	RAW_DATA_DIR_PATH = r'C:\Work\dym\2025-01-20 A2 SN1 stability\raw'
 	RESULTS_DIR_PATH = r'C:\Work\dym\data_quality_assessments'
-	DATA_FILE_NAME = 'raw_112'
 	EXP_METADATA = {
 		'SAMPLE_RATE': 100,     # [khz]
 		'PRF': 1,               # [khz]
@@ -256,12 +255,5 @@ if __name__ == "__main__":
 		plt.tight_layout()
 		plt.show()
 		
-	# Read a data file:
-	# exp_data_rank = ExperimentDataRank(file_path=os.path.join(RAW_DATA_DIR_PATH, f"{DATA_FILE_NAME}.csv"),
-	#                                    sample_rate=EXP_METADATA['SAMPLE_RATE'],
-	#                                    prf=EXP_METADATA['PRF'],
-	#                                    duty_cycle=EXP_METADATA['DUTY_CYCLE'])
-	# exp_data_assessment = exp_data_rank.rank_df
-	# plot_df(df=exp_data_assessment)
 	exit(0)
 	
