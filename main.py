@@ -16,14 +16,6 @@ import os
 #  - SWT map (cone of influence).
 #  - Incoherent integration.
 
-# TODO: talk to Ran about:
-#  - What is the attached metadata.
-#  - What experiment ranking would be useful for.
-#  - Plan Sunday:
-#       - Who would i work with on integration.
-#       - What can i do preciously.
-#       - How does their system integrate with code (services, IO, cloud, Data management.. ).
-
 # TODO: Implement pulse intensity over time.
 # TODO: branch the code into 'dev' branch (consult with Micha).
 # TODO: Read about 'haar' Vs. 'Daubechies'.
