@@ -2,7 +2,10 @@ from convolution_pulse_detection import ConvolutionPulseDetection
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+# matplotlib.use("TkAgg")
 plt.style.use("ggplot")
+
+# TODO: approach the signal intensity differences in signal mean.
 
 
 class PulseSignalNoiseEstimation:
@@ -168,10 +171,10 @@ if __name__ == "__main__":
 	
 	# Extract the main_pd channel:
 	main_pd_signal = data_file.df['main_pd'].values
-	# signa_partial = main_pd_signal
+	signa_partial = main_pd_signal
 	# signa_partial = main_pd_signal[:4096]
 	# signa_partial = main_pd_signal[:2048]
-	signa_partial = main_pd_signal[:1024]
+	# signa_partial = main_pd_signal[:1024]
 	
 	# signa_partial = main_pd_signal[:512]  # 5 pulses, all pulses OK
 	# signa_partial = main_pd_signal[:300]  # 3 pulses, all pulses OK
