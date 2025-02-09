@@ -27,7 +27,7 @@ class PulseSignalNoiseEstimation:
 		
 		# Trim noise indexes above the 90th percentile and pulse below 10th percentile:
 		self.trim_noise_pulse_out_layers()
-	
+		
 	def extract_pulse_noise_indices(self) -> pd.DataFrame:
 		"""
 		extracts the pulse and the noise indexes in the input signal
@@ -167,18 +167,20 @@ if __name__ == "__main__":
 	data_file = RawDataFile(file_path=file_path)
 	
 	# Extract the main_pd channel:
-	# main_current_signal = data_file.df['main_current'][:4096].values
-	# main_current_signal = data_file.df['main_current'][:2048].values
-	main_current_signal = data_file.df['main_current'][:1024].values
+	main_pd_signal = data_file.df['main_pd'].values
+	# signa_partial = main_pd_signal
+	# signa_partial = main_pd_signal[:4096]
+	# signa_partial = main_pd_signal[:2048]
+	signa_partial = main_pd_signal[:1024]
 	
-	# main_current_signal = data_file.df['main_current'][:512].values  # 5 pulses, all pulses OK
-	# main_current_signal = data_file.df['main_current'][:300].values  # 3 pulses, all pulses OK
-	# main_current_signal = data_file.df['main_current'][:170].values  # 2 pulses, right side false
-	# main_current_signal = data_file.df['main_current'][60:225].values  # 2 pulses, left side false
-	# main_current_signal = data_file.df['main_current'][60:250].values  # 3 pulses, both sides false
-	# main_current_signal = data_file.df['main_current'][15:115].values  # 1 centered pulses, successful detection
+	# signa_partial = main_pd_signal[:512]  # 5 pulses, all pulses OK
+	# signa_partial = main_pd_signal[:300]  # 3 pulses, all pulses OK
+	# signa_partial = main_pd_signal[:170]  # 2 pulses, right side false
+	# signa_partial = main_pd_signal[60:225]  # 2 pulses, left side false
+	# signa_partial = main_pd_signal[60:250]  # 3 pulses, both sides false
+	# signa_partial = main_pd_signal[15:115]  # 1 centered pulses, successful detection
 	
 	# Apply detection:
-	noise_estimation_mod = PulseSignalNoiseEstimation(signal=main_current_signal, pulse_width=SIGNAL_PULSE_WIDTH)
+	noise_estimation_mod = PulseSignalNoiseEstimation(signal=signa_partial, pulse_width=SIGNAL_PULSE_WIDTH)
 	noise_estimation_mod.display_noise_mean_estimation_process()
 	exit(0)
