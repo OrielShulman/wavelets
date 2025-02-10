@@ -3,6 +3,7 @@ from pulse_signal_noise_estimation import PulseSignalNoiseEstimation
 import os
 import numpy as np
 import pandas as pd
+import re
 
 
 class ExperimentDataRank:
@@ -188,7 +189,17 @@ if __name__ == "__main__":
 		"""
 		experiments_assessment_results = []
 		
+		# TODO: use the sorted filenames and test it.
+		# sort the filenames:
+		def extract_number(filename):
+			# Use regular expression to find the number part
+			match = re.search(r'(\d+)', filename)
+			return int(match.group(1)) if match else 0
+		
+		f_names = sorted(os.listdir(dir_path), key=extract_number)
+		
 		# Iterate over files in the target directory:
+		
 		for file_name in os.listdir(dir_path):
 			t_start = datetime.now()
 			print(f"Assessing file: {file_name} [{len(experiments_assessment_results) + 1} out of {len(os.listdir(dir_path))}]")
