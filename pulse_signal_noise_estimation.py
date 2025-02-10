@@ -2,7 +2,8 @@ from convolution_pulse_detection import ConvolutionPulseDetection
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# matplotlib.use("TkAgg")
+import matplotlib
+matplotlib.use("TkAgg")
 plt.style.use("ggplot")
 
 # TODO: approach the signal intensity differences in signal mean.
